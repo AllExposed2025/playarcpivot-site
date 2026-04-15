@@ -14,6 +14,7 @@ const UNIT_SPEED = 360;
 const SHIELD_WIDTH = 16;
 const SHIELD_HEIGHT = 120;
 const SHIELD_OFFSET = 18;
+const BODY_RADIUS = 18;
 
 const CORE_RADIUS = 12;
 const START_CORE_SPEED_X = 320;
@@ -25,6 +26,7 @@ const GOAL_TOP = ARENA_CENTER_Y - GOAL_HEIGHT / 2;
 const GOAL_BOTTOM = ARENA_CENTER_Y + GOAL_HEIGHT / 2;
 
 const POST_RADIUS = 12;
+const NET_DEPTH = 34;
 
 let sceneRef;
 
@@ -55,6 +57,7 @@ let centerOverlayBadge;
 let centerOverlayBadgeText;
 let centerOverlayPulse;
 let centerOverlayPulse2;
+let centerComboText;
 
 let screenFlash;
 let arenaGlow;
@@ -65,13 +68,20 @@ let cursors;
 let leftScore = 0;
 let rightScore = 0;
 
+let streakOwner = null;
+let streakCount = 0;
+
 let coreVelocityX = START_CORE_SPEED_X;
 let coreVelocityY = START_CORE_SPEED_Y;
 
 let roundPaused = false;
 let postHitCooldown = 0;
+let fighterHitCooldown = 0;
 
 let goalPosts = [];
+
+let audioCtx = null;
+let audioUnlocked = false;
 
 const config = {
   type: Phaser.AUTO,
@@ -111,6 +121,10 @@ function update(time, delta) {
     postHitCooldown -= delta;
   }
 
+  if (fighterHitCooldown > 0) {
+    fighterHitCooldown -= delta;
+  }
+
   if (roundPaused) {
     return;
   }
@@ -125,17 +139,14 @@ function drawArena() {
 
   scene.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x0b0f14);
 
-  // Titel
   scene.add.text(ARENA_CENTER_X, 26, 'ARCPIVOT RUSH DUEL', {
     fontFamily: 'Courier New',
     fontSize: '18px',
     color: '#f5a524'
   }).setOrigin(0.5);
 
-  // Buitenkader arena
-  const border = scene.add.graphics();
-  border.lineStyle(2, 0xf5a524, 0.6);
-  border.strokeRect(ARENA_LEFT, ARENA_TOP, ARENA_RIGHT - ARENA_LEFT, ARENA_BOTTOM - ARENA_TOP);
+  drawFieldSurface(scene);
+  drawFieldLines(scene);
 
   arenaGlow = scene.add.rectangle(
     ARENA_CENTER_X,
@@ -147,20 +158,120 @@ function drawArena() {
   );
   arenaGlow.setStrokeStyle(2, 0xf5a524, 0.25);
 
-  // Middenlijn
-  const middle = scene.add.graphics();
-  middle.lineStyle(2, 0xf5a524, 0.25);
-  middle.lineBetween(ARENA_CENTER_X, ARENA_TOP + 10, ARENA_CENTER_X, ARENA_BOTTOM - 10);
-
-  // Hoekaccenten
   drawCornerAccent(scene, ARENA_LEFT + 14, ARENA_TOP + 14, 'tl');
   drawCornerAccent(scene, ARENA_RIGHT - 14, ARENA_TOP + 14, 'tr');
   drawCornerAccent(scene, ARENA_LEFT + 14, ARENA_BOTTOM - 14, 'bl');
   drawCornerAccent(scene, ARENA_RIGHT - 14, ARENA_BOTTOM - 14, 'br');
 
-  // Schermflash
   screenFlash = scene.add.rectangle(ARENA_CENTER_X, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0xf5a524, 0);
   screenFlash.setDepth(900);
+}
+
+function drawFieldSurface(scene) {
+  const fieldWidth = ARENA_RIGHT - ARENA_LEFT;
+  const fieldHeight = ARENA_BOTTOM - ARENA_TOP;
+  const stripeCount = 10;
+  const stripeWidth = fieldWidth / stripeCount;
+
+  // Basis groen veld
+  scene.add.rectangle(ARENA_CENTER_X, ARENA_CENTER_Y, fieldWidth, fieldHeight, 0x2d7a24, 1);
+
+  for (let i = 0; i < stripeCount; i++) {
+    const color = i % 2 === 0 ? 0x2f8b24 : 0x3a972d;
+    const x = ARENA_LEFT + stripeWidth * i + stripeWidth / 2;
+    scene.add.rectangle(x, ARENA_CENTER_Y, stripeWidth, fieldHeight, color, 0.92);
+  }
+
+  // Zachte vignette
+  scene.add.rectangle(ARENA_CENTER_X, ARENA_CENTER_Y, fieldWidth, fieldHeight, 0x000000, 0.08);
+}
+
+function drawFieldLines(scene) {
+  const g = scene.add.graphics();
+  g.lineStyle(2, 0xf5f7fa, 0.75);
+
+  // Boven- en onderlijn
+  g.lineBetween(ARENA_LEFT, ARENA_TOP, ARENA_RIGHT, ARENA_TOP);
+  g.lineBetween(ARENA_LEFT, ARENA_BOTTOM, ARENA_RIGHT, ARENA_BOTTOM);
+
+  // Linker en rechter achterlijn, met ruimte voor palen
+  drawGoalLineWithPostGaps(g, ARENA_LEFT);
+  drawGoalLineWithPostGaps(g, ARENA_RIGHT);
+
+  // Middenlijn
+  g.lineBetween(ARENA_CENTER_X, ARENA_TOP, ARENA_CENTER_X, ARENA_BOTTOM);
+
+  // Middencirkel
+  g.strokeCircle(ARENA_CENTER_X, ARENA_CENTER_Y, 52);
+  g.fillStyle(0xf5f7fa, 0.85);
+  g.fillCircle(ARENA_CENTER_X, ARENA_CENTER_Y, 2);
+
+  // Strafschopgebieden
+  drawPenaltyBoxLeft(g);
+  drawPenaltyBoxRight(g);
+
+  // Kleine doelgebieden
+  drawGoalBoxLeft(g);
+  drawGoalBoxRight(g);
+}
+
+function drawGoalLineWithPostGaps(g, x) {
+  // Segment boven eerste paal
+  g.lineBetween(x, ARENA_TOP, x, GOAL_TOP - POST_RADIUS);
+
+  // Segment tussen de palen
+  g.lineBetween(x, GOAL_TOP + POST_RADIUS, x, GOAL_BOTTOM - POST_RADIUS);
+
+  // Segment onder tweede paal
+  g.lineBetween(x, GOAL_BOTTOM + POST_RADIUS, x, ARENA_BOTTOM);
+}
+
+function drawPenaltyBoxLeft(g) {
+  const boxDepth = 84;
+  const boxHeight = 220;
+  const top = ARENA_CENTER_Y - boxHeight / 2;
+  const bottom = ARENA_CENTER_Y + boxHeight / 2;
+
+  g.lineBetween(ARENA_LEFT, top, ARENA_LEFT + boxDepth, top);
+  g.lineBetween(ARENA_LEFT + boxDepth, top, ARENA_LEFT + boxDepth, bottom);
+  g.lineBetween(ARENA_LEFT + boxDepth, bottom, ARENA_LEFT, bottom);
+
+  g.strokeCircle(ARENA_LEFT + 58, ARENA_CENTER_Y, 34);
+}
+
+function drawPenaltyBoxRight(g) {
+  const boxDepth = 84;
+  const boxHeight = 220;
+  const top = ARENA_CENTER_Y - boxHeight / 2;
+  const bottom = ARENA_CENTER_Y + boxHeight / 2;
+
+  g.lineBetween(ARENA_RIGHT, top, ARENA_RIGHT - boxDepth, top);
+  g.lineBetween(ARENA_RIGHT - boxDepth, top, ARENA_RIGHT - boxDepth, bottom);
+  g.lineBetween(ARENA_RIGHT - boxDepth, bottom, ARENA_RIGHT, bottom);
+
+  g.strokeCircle(ARENA_RIGHT - 58, ARENA_CENTER_Y, 34);
+}
+
+function drawGoalBoxLeft(g) {
+  const boxDepth = 34;
+  const boxHeight = 100;
+  const top = ARENA_CENTER_Y - boxHeight / 2;
+  const bottom = ARENA_CENTER_Y + boxHeight / 2;
+
+  g.lineBetween(ARENA_LEFT, top, ARENA_LEFT + boxDepth, top);
+  g.lineBetween(ARENA_LEFT + boxDepth, top, ARENA_LEFT + boxDepth, bottom);
+  g.lineBetween(ARENA_LEFT + boxDepth, bottom, ARENA_LEFT, bottom);
+}
+
+function drawGoalBoxRight(g) {
+  const boxDepth = 34;
+  const boxHeight = 100;
+  const top = ARENA_CENTER_Y - boxHeight / 2;
+  const bottom = ARENA_CENTER_Y + boxHeight / 2;
+
+  g.lineBetween(ARENA_RIGHT, top, ARENA_RIGHT - boxDepth, top);
+  g.lineBetween(ARENA_RIGHT - boxDepth, top, ARENA_RIGHT - boxDepth, bottom);
+  g.lineBetween(ARENA_RIGHT - boxDepth, bottom, ARENA_RIGHT, bottom);
 }
 
 function drawCornerAccent(scene, x, y, corner) {
@@ -191,14 +302,12 @@ function drawCornerAccent(scene, x, y, corner) {
 function createExternalScoreboard() {
   const scene = sceneRef;
 
-  // Hangers
   const hanger = scene.add.graphics();
   hanger.lineStyle(2, 0xf5a524, 0.4);
   hanger.lineBetween(300, 36, 300, 66);
   hanger.lineBetween(660, 36, 660, 66);
   hanger.lineBetween(300, 36, 660, 36);
 
-  // Middenlabel
   const labelBg = scene.add.rectangle(480, 60, 220, 26, 0x0b0f14, 0.8);
   labelBg.setStrokeStyle(1, 0xf5a524, 0.35);
 
@@ -208,19 +317,14 @@ function createExternalScoreboard() {
     color: '#f5a524'
   }).setOrigin(0.5);
 
-  // Linker score-globe
   leftScoreOrb = scene.add.circle(300, 82, 28, 0x172133, 1);
   leftScoreOrb.setStrokeStyle(2, 0xf5a524, 0.8);
-
   scene.add.circle(292, 74, 8, 0xf5f7fa, 0.06);
 
-  // Rechter score-globe
   rightScoreOrb = scene.add.circle(660, 82, 28, 0x172133, 1);
   rightScoreOrb.setStrokeStyle(2, 0xf5a524, 0.8);
-
   scene.add.circle(652, 74, 8, 0xf5f7fa, 0.06);
 
-  // Scores
   leftScoreText = scene.add.text(300, 82, '0', {
     fontFamily: 'Courier New',
     fontSize: '28px',
@@ -237,60 +341,73 @@ function createExternalScoreboard() {
 function createGoalsAndPosts() {
   const scene = sceneRef;
 
+  drawGoalNet(scene, 'left');
+  drawGoalNet(scene, 'right');
+
   // Doelglow links
   const leftGoalFrame = scene.add.graphics();
-  leftGoalFrame.lineStyle(2, 0xf5a524, 0.7);
-  leftGoalFrame.strokeRect(ARENA_LEFT, GOAL_TOP, GOAL_WIDTH, GOAL_HEIGHT);
-
-  scene.add.rectangle(
-    ARENA_LEFT + GOAL_WIDTH / 2,
-    ARENA_CENTER_Y,
-    GOAL_WIDTH - 4,
-    GOAL_HEIGHT - 8,
-    0xf5a524,
-    0.18
-  );
+  leftGoalFrame.lineStyle(1, 0xf5a524, 0.5);
+  leftGoalFrame.strokeRect(ARENA_LEFT - NET_DEPTH, GOAL_TOP, NET_DEPTH, GOAL_HEIGHT);
 
   // Doelglow rechts
   const rightGoalFrame = scene.add.graphics();
-  rightGoalFrame.lineStyle(2, 0xf5a524, 0.7);
-  rightGoalFrame.strokeRect(ARENA_RIGHT - GOAL_WIDTH, GOAL_TOP, GOAL_WIDTH, GOAL_HEIGHT);
+  rightGoalFrame.lineStyle(1, 0xf5a524, 0.5);
+  rightGoalFrame.strokeRect(ARENA_RIGHT, GOAL_TOP, NET_DEPTH, GOAL_HEIGHT);
 
-  scene.add.rectangle(
-    ARENA_RIGHT - GOAL_WIDTH / 2,
-    ARENA_CENTER_Y,
-    GOAL_WIDTH - 4,
-    GOAL_HEIGHT - 8,
-    0xf5a524,
-    0.18
-  );
-
-  // Goal flashes
   leftGoalFlash = scene.add.rectangle(
-    ARENA_LEFT + GOAL_WIDTH / 2,
+    ARENA_LEFT - NET_DEPTH / 2,
     ARENA_CENTER_Y,
-    90,
+    NET_DEPTH + 60,
     GOAL_HEIGHT + 50,
     0xf5a524,
     0
   );
 
   rightGoalFlash = scene.add.rectangle(
-    ARENA_RIGHT - GOAL_WIDTH / 2,
+    ARENA_RIGHT + NET_DEPTH / 2,
     ARENA_CENTER_Y,
-    90,
+    NET_DEPTH + 60,
     GOAL_HEIGHT + 50,
     0xf5a524,
     0
   );
 
-  // Ronde doelpalen
+  // Palen exact op lijn
   goalPosts = [
-    createGoalPost(ARENA_LEFT + GOAL_WIDTH, GOAL_TOP),
-    createGoalPost(ARENA_LEFT + GOAL_WIDTH, GOAL_BOTTOM),
-    createGoalPost(ARENA_RIGHT - GOAL_WIDTH, GOAL_TOP),
-    createGoalPost(ARENA_RIGHT - GOAL_WIDTH, GOAL_BOTTOM)
+    createGoalPost(ARENA_LEFT, GOAL_TOP),
+    createGoalPost(ARENA_LEFT, GOAL_BOTTOM),
+    createGoalPost(ARENA_RIGHT, GOAL_TOP),
+    createGoalPost(ARENA_RIGHT, GOAL_BOTTOM)
   ];
+}
+
+function drawGoalNet(scene, side) {
+  const g = scene.add.graphics();
+  g.lineStyle(1, 0xf5f7fa, 0.18);
+
+  const startX = side === 'left' ? ARENA_LEFT - NET_DEPTH : ARENA_RIGHT;
+  const endX = side === 'left' ? ARENA_LEFT : ARENA_RIGHT + NET_DEPTH;
+
+  // Buitenframe net
+  g.strokeRect(startX, GOAL_TOP, NET_DEPTH, GOAL_HEIGHT);
+
+  // Verticale netlijnen
+  for (let i = 1; i < 5; i++) {
+    const t = i / 5;
+    const x = startX + (endX - startX) * t;
+    g.lineBetween(x, GOAL_TOP, x, GOAL_BOTTOM);
+  }
+
+  // Horizontale netlijnen
+  for (let i = 1; i < 7; i++) {
+    const y = GOAL_TOP + (GOAL_HEIGHT / 7) * i;
+    g.lineBetween(startX, y, endX, y);
+  }
+
+  // Schaduw/volume
+  const shadowColor = side === 'left' ? 0x000000 : 0x000000;
+  const shadowAlpha = 0.08;
+  scene.add.rectangle(startX + NET_DEPTH / 2, ARENA_CENTER_Y, NET_DEPTH, GOAL_HEIGHT, shadowColor, shadowAlpha);
 }
 
 function createGoalPost(x, y) {
@@ -299,7 +416,6 @@ function createGoalPost(x, y) {
   const glow = scene.add.circle(x, y, POST_RADIUS + 7, 0xf5a524, 0.08);
   const post = scene.add.circle(x, y, POST_RADIUS, 0x2d374b, 1);
   post.setStrokeStyle(2, 0xf5a524, 0.75);
-
   const inner = scene.add.circle(x - 2, y - 2, 4, 0xf5f7fa, 0.12);
 
   return { x, y, glow, post, inner };
@@ -315,7 +431,7 @@ function createFighter(x, y, facing) {
 
   const aura = scene.add.circle(0, 0, 30, 0xf5a524, 0.05);
 
-  const body = scene.add.circle(-8 * facing, 0, 18, 0x1b2230, 1);
+  const body = scene.add.circle(-8 * facing, 0, BODY_RADIUS, 0x1b2230, 1);
   body.setStrokeStyle(2, 0xf5a524, 0.28);
 
   const head = scene.add.circle(-18 * facing, 0, 8, 0x2c364a, 1);
@@ -379,7 +495,7 @@ function createCore() {
 function createHelpText() {
   const scene = sceneRef;
 
-  scene.add.text(ARENA_CENTER_X, 590, 'ROUND POSTS ACTIVE // SCOREBOARD OUTSIDE ARENA', {
+  scene.add.text(ARENA_CENTER_X, 590, 'GOAL NET + FIELD THEME ACTIVE // GOAL SOUND READY', {
     fontFamily: 'Courier New',
     fontSize: '14px',
     color: '#f5f7fa'
@@ -389,16 +505,16 @@ function createHelpText() {
 function createHeroGoalOverlay() {
   const scene = sceneRef;
 
-  centerOverlayBg = scene.add.rectangle(ARENA_CENTER_X, ARENA_CENTER_Y, 620, 220, 0x0b0f14, 0.92);
+  centerOverlayBg = scene.add.rectangle(ARENA_CENTER_X, ARENA_CENTER_Y, 620, 250, 0x0b0f14, 0.92);
   centerOverlayBg.setVisible(false);
   centerOverlayBg.setDepth(1000);
 
-  centerOverlayBorder = scene.add.rectangle(ARENA_CENTER_X, ARENA_CENTER_Y, 620, 220, 0x000000, 0);
+  centerOverlayBorder = scene.add.rectangle(ARENA_CENTER_X, ARENA_CENTER_Y, 620, 250, 0x000000, 0);
   centerOverlayBorder.setStrokeStyle(2, 0xf5a524, 0.65);
   centerOverlayBorder.setVisible(false);
   centerOverlayBorder.setDepth(1001);
 
-  centerOverlayTitle = scene.add.text(ARENA_CENTER_X, ARENA_CENTER_Y - 40, '', {
+  centerOverlayTitle = scene.add.text(ARENA_CENTER_X, ARENA_CENTER_Y - 58, '', {
     fontFamily: 'Courier New',
     fontSize: '42px',
     color: '#f5a524',
@@ -407,7 +523,7 @@ function createHeroGoalOverlay() {
   centerOverlayTitle.setVisible(false);
   centerOverlayTitle.setDepth(1002);
 
-  centerOverlaySub = scene.add.text(ARENA_CENTER_X, ARENA_CENTER_Y + 20, '', {
+  centerOverlaySub = scene.add.text(ARENA_CENTER_X, ARENA_CENTER_Y + 2, '', {
     fontFamily: 'Courier New',
     fontSize: '20px',
     color: '#f5f7fa'
@@ -415,18 +531,27 @@ function createHeroGoalOverlay() {
   centerOverlaySub.setVisible(false);
   centerOverlaySub.setDepth(1002);
 
-  centerOverlayBadge = scene.add.rectangle(ARENA_CENTER_X, ARENA_CENTER_Y + 65, 200, 42, 0xf5a524, 0.18);
+  centerOverlayBadge = scene.add.rectangle(ARENA_CENTER_X, ARENA_CENTER_Y + 48, 200, 42, 0xf5a524, 0.18);
   centerOverlayBadge.setStrokeStyle(1, 0xf5a524, 0.7);
   centerOverlayBadge.setVisible(false);
   centerOverlayBadge.setDepth(1002);
 
-  centerOverlayBadgeText = scene.add.text(ARENA_CENTER_X, ARENA_CENTER_Y + 65, '', {
+  centerOverlayBadgeText = scene.add.text(ARENA_CENTER_X, ARENA_CENTER_Y + 48, '', {
     fontFamily: 'Courier New',
     fontSize: '18px',
     color: '#f5a524'
   }).setOrigin(0.5);
   centerOverlayBadgeText.setVisible(false);
   centerOverlayBadgeText.setDepth(1003);
+
+  centerComboText = scene.add.text(ARENA_CENTER_X, ARENA_CENTER_Y + 98, '', {
+    fontFamily: 'Courier New',
+    fontSize: '30px',
+    color: '#ffcf66',
+    fontStyle: 'bold'
+  }).setOrigin(0.5);
+  centerComboText.setVisible(false);
+  centerComboText.setDepth(1003);
 
   centerOverlayPulse = scene.add.circle(ARENA_CENTER_X, ARENA_CENTER_Y, 45, 0xf5a524, 0.18);
   centerOverlayPulse.setStrokeStyle(3, 0xf5f7fa, 0.45);
@@ -448,6 +573,59 @@ function createInput() {
   });
 
   cursors = scene.input.keyboard.createCursorKeys();
+
+  scene.input.keyboard.on('keydown', unlockAudioOnce);
+  scene.input.on('pointerdown', unlockAudioOnce);
+}
+
+function unlockAudioOnce() {
+  if (!audioCtx) {
+    try {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    } catch (e) {
+      return;
+    }
+  }
+
+  if (audioCtx && audioCtx.state === 'suspended') {
+    audioCtx.resume();
+  }
+
+  audioUnlocked = true;
+}
+
+function playGoalSound() {
+  if (!audioCtx || !audioUnlocked) {
+    return;
+  }
+
+  const now = audioCtx.currentTime;
+
+  const osc1 = audioCtx.createOscillator();
+  const gain1 = audioCtx.createGain();
+  osc1.type = 'triangle';
+  osc1.frequency.setValueAtTime(520, now);
+  osc1.frequency.linearRampToValueAtTime(760, now + 0.12);
+  gain1.gain.setValueAtTime(0.0001, now);
+  gain1.gain.linearRampToValueAtTime(0.12, now + 0.02);
+  gain1.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
+  osc1.connect(gain1);
+  gain1.connect(audioCtx.destination);
+  osc1.start(now);
+  osc1.stop(now + 0.18);
+
+  const osc2 = audioCtx.createOscillator();
+  const gain2 = audioCtx.createGain();
+  osc2.type = 'sine';
+  osc2.frequency.setValueAtTime(220, now + 0.03);
+  osc2.frequency.linearRampToValueAtTime(330, now + 0.18);
+  gain2.gain.setValueAtTime(0.0001, now);
+  gain2.gain.linearRampToValueAtTime(0.08, now + 0.04);
+  gain2.gain.exponentialRampToValueAtTime(0.0001, now + 0.26);
+  osc2.connect(gain2);
+  gain2.connect(audioCtx.destination);
+  osc2.start(now);
+  osc2.stop(now + 0.26);
 }
 
 function moveLeftFighter(dt) {
@@ -492,29 +670,101 @@ function moveCore(dt) {
     syncCoreVisuals();
   }
 
-  if (isCoreTouchingShield(leftFighter) && coreVelocityX < 0) {
-    const shieldX = getShieldCenterX(leftFighter);
-    core.x = shieldX + SHIELD_WIDTH / 2 + CORE_RADIUS;
-    coreVelocityX = Math.abs(coreVelocityX) * 1.03;
-    coreVelocityY += (core.y - leftFighter.container.y) * 4.2;
-    onShieldHit(leftFighter);
-    onCoreHit();
-    syncCoreVisuals();
-  }
-
-  if (isCoreTouchingShield(rightFighter) && coreVelocityX > 0) {
-    const shieldX = getShieldCenterX(rightFighter);
-    core.x = shieldX - SHIELD_WIDTH / 2 - CORE_RADIUS;
-    coreVelocityX = -Math.abs(coreVelocityX) * 1.03;
-    coreVelocityY += (core.y - rightFighter.container.y) * 4.2;
-    onShieldHit(rightFighter);
-    onCoreHit();
-    syncCoreVisuals();
-  }
-
+  handleFighterCollisions();
   handleGoalPostCollisions();
   handleLeftBackWall();
   handleRightBackWall();
+}
+
+function handleFighterCollisions() {
+  if (fighterHitCooldown > 0) {
+    return;
+  }
+
+  if (isCoreTouchingShield(leftFighter)) {
+    resolveShieldCollision(leftFighter);
+    return;
+  }
+
+  if (isCoreTouchingShield(rightFighter)) {
+    resolveShieldCollision(rightFighter);
+    return;
+  }
+
+  if (isCoreTouchingBody(leftFighter)) {
+    resolveBodyCollision(leftFighter);
+    return;
+  }
+
+  if (isCoreTouchingBody(rightFighter)) {
+    resolveBodyCollision(rightFighter);
+  }
+}
+
+function resolveShieldCollision(fighter) {
+  const shieldX = getShieldCenterX(fighter);
+  const direction = core.x >= shieldX ? 1 : -1;
+
+  core.x = shieldX + direction * (SHIELD_WIDTH / 2 + CORE_RADIUS + 1);
+  coreVelocityX = Math.abs(coreVelocityX) * direction * 1.03;
+  coreVelocityY += (core.y - fighter.container.y) * 4.2;
+
+  fighterHitCooldown = 70;
+
+  onShieldHit(fighter);
+  onCoreHit();
+  syncCoreVisuals();
+}
+
+function isCoreTouchingShield(fighter) {
+  const shieldX = getShieldCenterX(fighter);
+  const horizontalHit = Math.abs(core.x - shieldX) < (SHIELD_WIDTH / 2 + CORE_RADIUS);
+  const verticalHit = Math.abs(core.y - fighter.container.y) < (SHIELD_HEIGHT / 2 + CORE_RADIUS);
+  return horizontalHit && verticalHit;
+}
+
+function isCoreTouchingBody(fighter) {
+  const bodyX = fighter.container.x + (-8 * fighter.facing);
+  const bodyY = fighter.container.y;
+
+  const dx = core.x - bodyX;
+  const dy = core.y - bodyY;
+  const distance = Math.sqrt(dx * dx + dy * dy);
+
+  return distance <= CORE_RADIUS + BODY_RADIUS;
+}
+
+function resolveBodyCollision(fighter) {
+  const bodyX = fighter.container.x + (-8 * fighter.facing);
+  const bodyY = fighter.container.y;
+
+  let dx = core.x - bodyX;
+  let dy = core.y - bodyY;
+  let distance = Math.sqrt(dx * dx + dy * dy);
+
+  if (distance === 0) {
+    distance = 0.001;
+    dx = 0.001;
+  }
+
+  const nx = dx / distance;
+  const ny = dy / distance;
+  const dot = coreVelocityX * nx + coreVelocityY * ny;
+
+  coreVelocityX = coreVelocityX - 2 * dot * nx;
+  coreVelocityY = coreVelocityY - 2 * dot * ny;
+
+  coreVelocityX *= 1.01;
+  coreVelocityY *= 1.01;
+
+  core.x = bodyX + nx * (CORE_RADIUS + BODY_RADIUS + 1);
+  core.y = bodyY + ny * (CORE_RADIUS + BODY_RADIUS + 1);
+
+  fighterHitCooldown = 70;
+
+  onBodyHit(fighter);
+  onCoreHit();
+  syncCoreVisuals();
 }
 
 function handleGoalPostCollisions() {
@@ -532,7 +782,6 @@ function handleGoalPostCollisions() {
     if (distance <= CORE_RADIUS + POST_RADIUS) {
       const nx = dx / distance;
       const ny = dy / distance;
-
       const dot = coreVelocityX * nx + coreVelocityY * ny;
 
       if (dot < 0) {
@@ -612,32 +861,80 @@ function handleRightBackWall() {
 function scoreGoal(side) {
   roundPaused = true;
 
+  const comboData = updateComboState(side);
+
   if (side === 'left') {
     leftScore++;
     leftScoreText.setText(String(leftScore));
     pulseScore(leftScoreText, leftScoreOrb);
-    playGoalEffect('left');
-    showHeroGoalOverlay('PLAYER ONE SCORES', 'LEFT SIDE // ARC BREAK', 'PLAYER ONE');
+    animateCoreIntoNet('left', comboData);
   } else {
     rightScore++;
     rightScoreText.setText(String(rightScore));
     pulseScore(rightScoreText, rightScoreOrb);
-    playGoalEffect('right');
-    showHeroGoalOverlay('PLAYER TWO SCORES', 'RIGHT SIDE // ARC BREAK', 'PLAYER TWO');
+    animateCoreIntoNet('right', comboData);
+  }
+}
+
+function animateCoreIntoNet(side, comboData) {
+  playGoalSound();
+
+  const targetX = side === 'left' ? ARENA_RIGHT + (NET_DEPTH / 2) : ARENA_LEFT - (NET_DEPTH / 2);
+  const targetY = Phaser.Math.Clamp(core.y, GOAL_TOP + 10, GOAL_BOTTOM - 10);
+
+  sceneRef.tweens.add({
+    targets: [core, coreGlow, coreInner],
+    x: targetX,
+    y: targetY,
+    duration: 180,
+    ease: 'Quad.easeOut',
+    onUpdate: () => {
+      syncCoreVisuals();
+    },
+    onComplete: () => {
+      playGoalEffect(side);
+
+      if (side === 'left') {
+        showHeroGoalOverlay('PLAYER ONE SCORES', 'NET FINISH // ARC BREAK', 'PLAYER ONE', comboData.displayText);
+      } else {
+        showHeroGoalOverlay('PLAYER TWO SCORES', 'NET FINISH // ARC BREAK', 'PLAYER TWO', comboData.displayText);
+      }
+
+      sceneRef.time.delayedCall(1250, () => {
+        hideHeroGoalOverlay();
+        resetCore(false);
+        core.setVisible(true);
+        coreGlow.setVisible(true);
+        coreInner.setVisible(true);
+        roundPaused = false;
+      });
+    }
+  });
+}
+
+function updateComboState(scoringSide) {
+  const streakWasBroken = streakOwner !== null && streakOwner !== scoringSide && streakCount >= 2;
+
+  if (streakOwner === scoringSide) {
+    streakCount++;
+  } else {
+    streakOwner = scoringSide;
+    streakCount = 1;
   }
 
-  core.setVisible(false);
-  coreGlow.setVisible(false);
-  coreInner.setVisible(false);
+  let displayText = '';
 
-  sceneRef.time.delayedCall(1250, () => {
-    hideHeroGoalOverlay();
-    resetCore(false);
-    core.setVisible(true);
-    coreGlow.setVisible(true);
-    coreInner.setVisible(true);
-    roundPaused = false;
-  });
+  if (streakWasBroken) {
+    displayText = 'COMEBACK!';
+  } else if (streakCount === 2) {
+    displayText = '2-IN-A-ROW!';
+  } else if (streakCount === 3) {
+    displayText = 'COCOCOMBOOOO!';
+  } else if (streakCount >= 4) {
+    displayText = 'OUTRAGIOUS!';
+  }
+
+  return { displayText };
 }
 
 function pulseScore(scoreText, scoreOrb) {
@@ -652,8 +949,8 @@ function pulseScore(scoreText, scoreOrb) {
 
 function playGoalEffect(side) {
   const scene = sceneRef;
-  const flash = side === 'left' ? leftGoalFlash : rightGoalFlash;
-  const burstX = side === 'left' ? 90 : 870;
+  const flash = side === 'left' ? rightGoalFlash : leftGoalFlash;
+  const burstX = side === 'left' ? ARENA_RIGHT + NET_DEPTH / 2 : ARENA_LEFT - NET_DEPTH / 2;
 
   flash.setAlpha(1);
 
@@ -714,7 +1011,7 @@ function playGoalEffect(side) {
   }
 }
 
-function showHeroGoalOverlay(title, sub, badgeText) {
+function showHeroGoalOverlay(title, sub, badgeText, comboText) {
   const scene = sceneRef;
 
   centerOverlayBg.setVisible(true);
@@ -738,6 +1035,15 @@ function showHeroGoalOverlay(title, sub, badgeText) {
   centerOverlayBadgeText.setText(badgeText);
   centerOverlayBadgeText.setVisible(true);
   centerOverlayBadgeText.setAlpha(0);
+
+  if (comboText && comboText.length > 0) {
+    centerComboText.setText(comboText);
+    centerComboText.setVisible(true);
+    centerComboText.setAlpha(0);
+    centerComboText.setScale(0.82);
+  } else {
+    centerComboText.setVisible(false);
+  }
 
   centerOverlayPulse.setVisible(true);
   centerOverlayPulse.setAlpha(0.38);
@@ -772,6 +1078,15 @@ function showHeroGoalOverlay(title, sub, badgeText) {
     duration: 320
   });
 
+  if (comboText && comboText.length > 0) {
+    scene.tweens.add({
+      targets: centerComboText,
+      alpha: 1,
+      scale: 1,
+      duration: 360
+    });
+  }
+
   scene.tweens.add({
     targets: centerOverlayPulse,
     scaleX: 6.2,
@@ -798,17 +1113,11 @@ function hideHeroGoalOverlay() {
   centerOverlayBadgeText.setVisible(false);
   centerOverlayPulse.setVisible(false);
   centerOverlayPulse2.setVisible(false);
+  centerComboText.setVisible(false);
 }
 
 function getShieldCenterX(fighter) {
   return fighter.container.x + SHIELD_OFFSET * fighter.facing;
-}
-
-function isCoreTouchingShield(fighter) {
-  const shieldX = getShieldCenterX(fighter);
-  const horizontalHit = Math.abs(core.x - shieldX) < (SHIELD_WIDTH / 2 + CORE_RADIUS);
-  const verticalHit = Math.abs(core.y - fighter.container.y) < (SHIELD_HEIGHT / 2 + CORE_RADIUS);
-  return horizontalHit && verticalHit;
 }
 
 function onShieldHit(fighter) {
@@ -833,6 +1142,23 @@ function onShieldHit(fighter) {
   sceneRef.time.delayedCall(90, () => {
     fighter.shield.setFillStyle(0xf5a524, 0.92);
     fighter.shieldGlow.setAlpha(0.06);
+  });
+}
+
+function onBodyHit(fighter) {
+  sceneRef.tweens.add({
+    targets: [fighter.body, fighter.aura],
+    scaleX: 1.12,
+    scaleY: 1.12,
+    alpha: 1,
+    yoyo: true,
+    duration: 90
+  });
+
+  fighter.body.setFillStyle(0x30405c, 1);
+
+  sceneRef.time.delayedCall(100, () => {
+    fighter.body.setFillStyle(0x1b2230, 1);
   });
 }
 
@@ -888,7 +1214,6 @@ function updateTrail(dt) {
 function syncCoreVisuals() {
   coreGlow.x = core.x;
   coreGlow.y = core.y;
-
   coreInner.x = core.x;
   coreInner.y = core.y;
 }
