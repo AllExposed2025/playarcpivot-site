@@ -32,9 +32,16 @@ let leftScoreText;
 let rightScoreText;
 
 let centerOverlayBg;
+let centerOverlayBorder;
 let centerOverlayTitle;
 let centerOverlaySub;
+let centerOverlayBadge;
+let centerOverlayBadgeText;
 let centerOverlayPulse;
+let centerOverlayPulse2;
+
+let screenFlash;
+let arenaGlow;
 
 let leftKeys;
 let cursors;
@@ -69,7 +76,7 @@ function create() {
   createGoals();
   createUnitsAndCore();
   createHelpText();
-  createCenterScoreOverlay();
+  createHeroGoalOverlay();
   createInput();
 
   resetCore(true);
@@ -92,23 +99,71 @@ function drawArena() {
 
   scene.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x0b0f14);
 
+  // Hoofd rand
   const border = scene.add.graphics();
   border.lineStyle(2, 0xf5a524, 0.6);
   border.strokeRect(ARENA_LEFT, ARENA_TOP, 920, 500);
 
+  // Extra glow rand
+  arenaGlow = scene.add.rectangle(480, 270, 930, 510, 0xf5a524, 0);
+  arenaGlow.setStrokeStyle(2, 0xf5a524, 0.25);
+
+  // Middenlijn
   const middle = scene.add.graphics();
   middle.lineStyle(2, 0xf5a524, 0.25);
   middle.lineBetween(GAME_WIDTH / 2, 30, GAME_WIDTH / 2, 510);
 
+  // Hoekaccenten
+  drawCornerAccent(scene, 34, 34, 'tl');
+  drawCornerAccent(scene, 926, 34, 'tr');
+  drawCornerAccent(scene, 34, 506, 'bl');
+  drawCornerAccent(scene, 926, 506, 'br');
+
+  // Titel
   scene.add.text(480, 40, 'ARCPIVOT RUSH DUEL', {
     fontFamily: 'Courier New',
     fontSize: '18px',
     color: '#f5a524'
   }).setOrigin(0.5);
+
+  // Flashlaag over hele scherm
+  screenFlash = scene.add.rectangle(480, 270, GAME_WIDTH, GAME_HEIGHT, 0xf5a524, 0);
+  screenFlash.setDepth(900);
+}
+
+function drawCornerAccent(scene, x, y, corner) {
+  const g = scene.add.graphics();
+  g.lineStyle(2, 0xf5a524, 0.5);
+
+  if (corner === 'tl') {
+    g.lineBetween(x, y, x + 18, y);
+    g.lineBetween(x, y, x, y + 18);
+  }
+
+  if (corner === 'tr') {
+    g.lineBetween(x, y, x - 18, y);
+    g.lineBetween(x, y, x, y + 18);
+  }
+
+  if (corner === 'bl') {
+    g.lineBetween(x, y, x + 18, y);
+    g.lineBetween(x, y, x, y - 18);
+  }
+
+  if (corner === 'br') {
+    g.lineBetween(x, y, x - 18, y);
+    g.lineBetween(x, y, x, y - 18);
+  }
 }
 
 function createScoreboard() {
   const scene = sceneRef;
+
+  const leftPanel = scene.add.rectangle(220, 40, 70, 38, 0x0b0f14, 0.7);
+  leftPanel.setStrokeStyle(1, 0xf5a524, 0.35);
+
+  const rightPanel = scene.add.rectangle(740, 40, 70, 38, 0x0b0f14, 0.7);
+  rightPanel.setStrokeStyle(1, 0xf5a524, 0.35);
 
   leftScoreText = scene.add.text(220, 40, '0', {
     fontFamily: 'Courier New',
@@ -126,13 +181,10 @@ function createScoreboard() {
 function createGoals() {
   const scene = sceneRef;
 
+  // Linker doel
   const leftGoalFrame = scene.add.graphics();
-  leftGoalFrame.lineStyle(2, 0xf5a524, 0.75);
+  leftGoalFrame.lineStyle(2, 0xf5a524, 0.8);
   leftGoalFrame.strokeRect(ARENA_LEFT, GOAL_TOP, GOAL_WIDTH, GOAL_HEIGHT);
-
-  const rightGoalFrame = scene.add.graphics();
-  rightGoalFrame.lineStyle(2, 0xf5a524, 0.75);
-  rightGoalFrame.strokeRect(ARENA_RIGHT - GOAL_WIDTH, GOAL_TOP, GOAL_WIDTH, GOAL_HEIGHT);
 
   scene.add.rectangle(
     ARENA_LEFT + GOAL_WIDTH / 2,
@@ -140,8 +192,22 @@ function createGoals() {
     GOAL_WIDTH - 4,
     GOAL_HEIGHT - 8,
     0xf5a524,
-    0.18
+    0.22
   );
+
+  scene.add.rectangle(
+    ARENA_LEFT + GOAL_WIDTH + 5,
+    GAME_HEIGHT / 2,
+    6,
+    GOAL_HEIGHT - 18,
+    0xf5a524,
+    0.08
+  );
+
+  // Rechter doel
+  const rightGoalFrame = scene.add.graphics();
+  rightGoalFrame.lineStyle(2, 0xf5a524, 0.8);
+  rightGoalFrame.strokeRect(ARENA_RIGHT - GOAL_WIDTH, GOAL_TOP, GOAL_WIDTH, GOAL_HEIGHT);
 
   scene.add.rectangle(
     ARENA_RIGHT - GOAL_WIDTH / 2,
@@ -149,14 +215,23 @@ function createGoals() {
     GOAL_WIDTH - 4,
     GOAL_HEIGHT - 8,
     0xf5a524,
-    0.18
+    0.22
+  );
+
+  scene.add.rectangle(
+    ARENA_RIGHT - GOAL_WIDTH - 5,
+    GAME_HEIGHT / 2,
+    6,
+    GOAL_HEIGHT - 18,
+    0xf5a524,
+    0.08
   );
 
   leftGoalFlash = scene.add.rectangle(
     ARENA_LEFT + GOAL_WIDTH / 2,
     GAME_HEIGHT / 2,
-    GOAL_WIDTH + 28,
-    GOAL_HEIGHT + 30,
+    90,
+    GOAL_HEIGHT + 50,
     0xf5a524,
     0
   );
@@ -164,8 +239,8 @@ function createGoals() {
   rightGoalFlash = scene.add.rectangle(
     ARENA_RIGHT - GOAL_WIDTH / 2,
     GAME_HEIGHT / 2,
-    GOAL_WIDTH + 28,
-    GOAL_HEIGHT + 30,
+    90,
+    GOAL_HEIGHT + 50,
     0xf5a524,
     0
   );
@@ -174,10 +249,10 @@ function createGoals() {
 function createUnitsAndCore() {
   const scene = sceneRef;
 
-  leftUnit = scene.add.rectangle(80, 270, UNIT_WIDTH, UNIT_HEIGHT, 0xf5a524, 0.9);
+  leftUnit = scene.add.rectangle(80, 270, UNIT_WIDTH, UNIT_HEIGHT, 0xf5a524, 0.95);
   leftUnit.setStrokeStyle(2, 0xf5f7fa, 0.35);
 
-  rightUnit = scene.add.rectangle(880, 270, UNIT_WIDTH, UNIT_HEIGHT, 0xf5a524, 0.9);
+  rightUnit = scene.add.rectangle(880, 270, UNIT_WIDTH, UNIT_HEIGHT, 0xf5a524, 0.95);
   rightUnit.setStrokeStyle(2, 0xf5f7fa, 0.35);
 
   core = scene.add.circle(480, 270, CORE_RADIUS, 0xf5a524, 1);
@@ -194,31 +269,57 @@ function createHelpText() {
   }).setOrigin(0.5);
 }
 
-function createCenterScoreOverlay() {
+function createHeroGoalOverlay() {
   const scene = sceneRef;
 
-  centerOverlayBg = scene.add.rectangle(480, 270, 520, 180, 0x0b0f14, 0.86);
-  centerOverlayBg.setStrokeStyle(2, 0xf5a524, 0.5);
+  centerOverlayBg = scene.add.rectangle(480, 270, 620, 220, 0x0b0f14, 0.92);
   centerOverlayBg.setVisible(false);
+  centerOverlayBg.setDepth(1000);
 
-  centerOverlayTitle = scene.add.text(480, 240, '', {
+  centerOverlayBorder = scene.add.rectangle(480, 270, 620, 220, 0x000000, 0);
+  centerOverlayBorder.setStrokeStyle(2, 0xf5a524, 0.65);
+  centerOverlayBorder.setVisible(false);
+  centerOverlayBorder.setDepth(1001);
+
+  centerOverlayTitle = scene.add.text(480, 230, '', {
     fontFamily: 'Courier New',
-    fontSize: '34px',
+    fontSize: '42px',
     color: '#f5a524',
     fontStyle: 'bold'
   }).setOrigin(0.5);
   centerOverlayTitle.setVisible(false);
+  centerOverlayTitle.setDepth(1002);
 
   centerOverlaySub = scene.add.text(480, 290, '', {
     fontFamily: 'Courier New',
-    fontSize: '18px',
+    fontSize: '20px',
     color: '#f5f7fa'
   }).setOrigin(0.5);
   centerOverlaySub.setVisible(false);
+  centerOverlaySub.setDepth(1002);
 
-  centerOverlayPulse = scene.add.circle(480, 270, 40, 0xf5a524, 0.18);
+  centerOverlayBadge = scene.add.rectangle(480, 335, 200, 42, 0xf5a524, 0.18);
+  centerOverlayBadge.setStrokeStyle(1, 0xf5a524, 0.7);
+  centerOverlayBadge.setVisible(false);
+  centerOverlayBadge.setDepth(1002);
+
+  centerOverlayBadgeText = scene.add.text(480, 335, '', {
+    fontFamily: 'Courier New',
+    fontSize: '18px',
+    color: '#f5a524'
+  }).setOrigin(0.5);
+  centerOverlayBadgeText.setVisible(false);
+  centerOverlayBadgeText.setDepth(1003);
+
+  centerOverlayPulse = scene.add.circle(480, 270, 45, 0xf5a524, 0.18);
   centerOverlayPulse.setStrokeStyle(3, 0xf5f7fa, 0.45);
   centerOverlayPulse.setVisible(false);
+  centerOverlayPulse.setDepth(999);
+
+  centerOverlayPulse2 = scene.add.circle(480, 270, 20, 0xf5a524, 0.12);
+  centerOverlayPulse2.setStrokeStyle(2, 0xf5a524, 0.35);
+  centerOverlayPulse2.setVisible(false);
+  centerOverlayPulse2.setDepth(999);
 }
 
 function createInput() {
@@ -318,75 +419,140 @@ function scoreGoal(side) {
   if (side === 'left') {
     leftScore++;
     leftScoreText.setText(String(leftScore));
+    pulseScore(leftScoreText);
     playGoalEffect('left');
-    showCenterScoreOverlay('PLAYER ONE SCORES', 'LEFT SIDE // CORE BREAK');
+    showHeroGoalOverlay('PLAYER ONE SCORES', 'LEFT SIDE // ARC BREAK', 'PLAYER ONE');
   } else {
     rightScore++;
     rightScoreText.setText(String(rightScore));
+    pulseScore(rightScoreText);
     playGoalEffect('right');
-    showCenterScoreOverlay('PLAYER TWO SCORES', 'RIGHT SIDE // CORE BREAK');
+    showHeroGoalOverlay('PLAYER TWO SCORES', 'RIGHT SIDE // ARC BREAK', 'PLAYER TWO');
   }
 
   core.setVisible(false);
 
-  sceneRef.time.delayedCall(900, () => {
-    hideCenterScoreOverlay();
+  sceneRef.time.delayedCall(1250, () => {
+    hideHeroGoalOverlay();
     resetCore(false);
     core.setVisible(true);
     roundPaused = false;
   });
 }
 
+function pulseScore(scoreText) {
+  sceneRef.tweens.add({
+    targets: scoreText,
+    scaleX: 1.35,
+    scaleY: 1.35,
+    yoyo: true,
+    duration: 160
+  });
+}
+
 function playGoalEffect(side) {
   const scene = sceneRef;
   const flash = side === 'left' ? leftGoalFlash : rightGoalFlash;
+  const burstX = side === 'left' ? 90 : 870;
 
+  // Doelflash
   flash.setAlpha(1);
 
   scene.tweens.add({
     targets: flash,
     alpha: 0,
+    duration: 520
+  });
+
+  // Schermreactie
+  scene.cameras.main.shake(180, 0.008);
+  scene.cameras.main.flash(180, 245, 165, 36, false);
+
+  screenFlash.setAlpha(0.26);
+  scene.tweens.add({
+    targets: screenFlash,
+    alpha: 0,
+    duration: 240
+  });
+
+  arenaGlow.setAlpha(0.45);
+  scene.tweens.add({
+    targets: arenaGlow,
+    alpha: 0,
     duration: 420
   });
 
-  const burstX = side === 'left' ? 90 : 870;
-
-  for (let i = 0; i < 6; i++) {
-    const pulse = scene.add.circle(burstX, 270, 14 + i * 4, 0xf5a524, 0.22);
-    pulse.setStrokeStyle(2, 0xf5f7fa, 0.28);
+  // Grote ringen bij doel
+  for (let i = 0; i < 8; i++) {
+    const ring = scene.add.circle(burstX, 270, 12 + i * 6, 0xf5a524, 0.18);
+    ring.setStrokeStyle(2, 0xf5f7fa, 0.24);
 
     scene.tweens.add({
-      targets: pulse,
-      scaleX: 2.2,
-      scaleY: 2.2,
+      targets: ring,
+      scaleX: 2.8,
+      scaleY: 2.8,
       alpha: 0,
-      duration: 420 + i * 40,
-      onComplete: () => pulse.destroy()
+      duration: 460 + i * 35,
+      onComplete: () => ring.destroy()
+    });
+  }
+
+  // Energy sparks
+  for (let i = 0; i < 18; i++) {
+    const spark = scene.add.circle(burstX, 270, Phaser.Math.Between(2, 5), 0xf5a524, 1);
+    spark.setDepth(1005);
+
+    const offsetX = Phaser.Math.Between(-90, 90);
+    const offsetY = Phaser.Math.Between(-110, 110);
+
+    scene.tweens.add({
+      targets: spark,
+      x: burstX + offsetX,
+      y: 270 + offsetY,
+      alpha: 0,
+      scaleX: 0.2,
+      scaleY: 0.2,
+      duration: Phaser.Math.Between(260, 460),
+      onComplete: () => spark.destroy()
     });
   }
 }
 
-function showCenterScoreOverlay(title, sub) {
+function showHeroGoalOverlay(title, sub, badgeText) {
   const scene = sceneRef;
 
   centerOverlayBg.setVisible(true);
   centerOverlayBg.setAlpha(0);
 
+  centerOverlayBorder.setVisible(true);
+  centerOverlayBorder.setAlpha(0);
+
   centerOverlayTitle.setText(title);
   centerOverlayTitle.setVisible(true);
   centerOverlayTitle.setAlpha(0);
-  centerOverlayTitle.setScale(0.85);
+  centerOverlayTitle.setScale(0.72);
 
   centerOverlaySub.setText(sub);
   centerOverlaySub.setVisible(true);
   centerOverlaySub.setAlpha(0);
 
+  centerOverlayBadge.setVisible(true);
+  centerOverlayBadge.setAlpha(0);
+
+  centerOverlayBadgeText.setText(badgeText);
+  centerOverlayBadgeText.setVisible(true);
+  centerOverlayBadgeText.setAlpha(0);
+
   centerOverlayPulse.setVisible(true);
-  centerOverlayPulse.setAlpha(0.35);
+  centerOverlayPulse.setAlpha(0.38);
   centerOverlayPulse.setScale(1);
 
+  centerOverlayPulse2.setVisible(true);
+  centerOverlayPulse2.setAlpha(0.28);
+  centerOverlayPulse2.setScale(1);
+
   scene.tweens.add({
-    targets: centerOverlayBg,
+    targets: [centerOverlayBg, centerOverlayBorder],
     alpha: 1,
     duration: 180
   });
@@ -395,29 +561,47 @@ function showCenterScoreOverlay(title, sub) {
     targets: centerOverlayTitle,
     alpha: 1,
     scale: 1,
-    duration: 220
+    duration: 240
   });
 
   scene.tweens.add({
     targets: centerOverlaySub,
     alpha: 1,
-    duration: 260
+    duration: 280
+  });
+
+  scene.tweens.add({
+    targets: [centerOverlayBadge, centerOverlayBadgeText],
+    alpha: 1,
+    duration: 320
   });
 
   scene.tweens.add({
     targets: centerOverlayPulse,
-    scaleX: 5,
-    scaleY: 5,
+    scaleX: 6.2,
+    scaleY: 6.2,
     alpha: 0,
-    duration: 520
+    duration: 700
+  });
+
+  scene.tweens.add({
+    targets: centerOverlayPulse2,
+    scaleX: 9,
+    scaleY: 9,
+    alpha: 0,
+    duration: 920
   });
 }
 
-function hideCenterScoreOverlay() {
+function hideHeroGoalOverlay() {
   centerOverlayBg.setVisible(false);
+  centerOverlayBorder.setVisible(false);
   centerOverlayTitle.setVisible(false);
   centerOverlaySub.setVisible(false);
+  centerOverlayBadge.setVisible(false);
+  centerOverlayBadgeText.setVisible(false);
   centerOverlayPulse.setVisible(false);
+  centerOverlayPulse2.setVisible(false);
 }
 
 function isCoreTouchingUnit(unit, coreObject) {
