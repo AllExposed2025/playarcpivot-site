@@ -6,9 +6,11 @@ const ARENA_RIGHT = 940;
 const ARENA_TOP = 20;
 const ARENA_BOTTOM = 520;
 
-const UNIT_WIDTH = 28;
-const UNIT_HEIGHT = 120;
 const UNIT_SPEED = 360;
+
+const SHIELD_WIDTH = 16;
+const SHIELD_HEIGHT = 120;
+const SHIELD_OFFSET = 18;
 
 const CORE_RADIUS = 12;
 const START_CORE_SPEED_X = 320;
@@ -21,9 +23,16 @@ const GOAL_BOTTOM = GOAL_TOP + GOAL_HEIGHT;
 
 let sceneRef;
 
-let leftUnit;
-let rightUnit;
+let leftFighter;
+let rightFighter;
+
 let core;
+let coreGlow;
+let coreInner;
+
+let trailDots = [];
+let trailHistory = [];
+let trailActiveTime = 0;
 
 let leftGoalFlash;
 let rightGoalFlash;
@@ -74,7 +83,8 @@ function create() {
   drawArena();
   createScoreboard();
   createGoals();
-  createUnitsAndCore();
+  createFighters();
+  createCore();
   createHelpText();
   createHeroGoalOverlay();
   createInput();
@@ -83,14 +93,16 @@ function create() {
 }
 
 function update(time, delta) {
+  const dt = delta / 1000;
+
+  updateTrail(dt);
+
   if (roundPaused) {
     return;
   }
 
-  const dt = delta / 1000;
-
-  moveLeftUnit(dt);
-  moveRightUnit(dt);
+  moveLeftFighter(dt);
+  moveRightFighter(dt);
   moveCore(dt);
 }
 
@@ -99,34 +111,28 @@ function drawArena() {
 
   scene.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x0b0f14);
 
-  // Hoofd rand
   const border = scene.add.graphics();
   border.lineStyle(2, 0xf5a524, 0.6);
   border.strokeRect(ARENA_LEFT, ARENA_TOP, 920, 500);
 
-  // Extra glow rand
   arenaGlow = scene.add.rectangle(480, 270, 930, 510, 0xf5a524, 0);
   arenaGlow.setStrokeStyle(2, 0xf5a524, 0.25);
 
-  // Middenlijn
   const middle = scene.add.graphics();
   middle.lineStyle(2, 0xf5a524, 0.25);
   middle.lineBetween(GAME_WIDTH / 2, 30, GAME_WIDTH / 2, 510);
 
-  // Hoekaccenten
   drawCornerAccent(scene, 34, 34, 'tl');
   drawCornerAccent(scene, 926, 34, 'tr');
   drawCornerAccent(scene, 34, 506, 'bl');
   drawCornerAccent(scene, 926, 506, 'br');
 
-  // Titel
   scene.add.text(480, 40, 'ARCPIVOT RUSH DUEL', {
     fontFamily: 'Courier New',
     fontSize: '18px',
     color: '#f5a524'
   }).setOrigin(0.5);
 
-  // Flashlaag over hele scherm
   screenFlash = scene.add.rectangle(480, 270, GAME_WIDTH, GAME_HEIGHT, 0xf5a524, 0);
   screenFlash.setDepth(900);
 }
@@ -181,7 +187,6 @@ function createScoreboard() {
 function createGoals() {
   const scene = sceneRef;
 
-  // Linker doel
   const leftGoalFrame = scene.add.graphics();
   leftGoalFrame.lineStyle(2, 0xf5a524, 0.8);
   leftGoalFrame.strokeRect(ARENA_LEFT, GOAL_TOP, GOAL_WIDTH, GOAL_HEIGHT);
@@ -204,7 +209,6 @@ function createGoals() {
     0.08
   );
 
-  // Rechter doel
   const rightGoalFrame = scene.add.graphics();
   rightGoalFrame.lineStyle(2, 0xf5a524, 0.8);
   rightGoalFrame.strokeRect(ARENA_RIGHT - GOAL_WIDTH, GOAL_TOP, GOAL_WIDTH, GOAL_HEIGHT);
@@ -246,23 +250,81 @@ function createGoals() {
   );
 }
 
-function createUnitsAndCore() {
+function createFighters() {
+  leftFighter = createFighter(76, 270, 1);
+  rightFighter = createFighter(884, 270, -1);
+}
+
+function createFighter(x, y, facing) {
   const scene = sceneRef;
 
-  leftUnit = scene.add.rectangle(80, 270, UNIT_WIDTH, UNIT_HEIGHT, 0xf5a524, 0.95);
-  leftUnit.setStrokeStyle(2, 0xf5f7fa, 0.35);
+  const aura = scene.add.circle(0, 0, 30, 0xf5a524, 0.05);
 
-  rightUnit = scene.add.rectangle(880, 270, UNIT_WIDTH, UNIT_HEIGHT, 0xf5a524, 0.95);
-  rightUnit.setStrokeStyle(2, 0xf5f7fa, 0.35);
+  const body = scene.add.circle(-8 * facing, 0, 18, 0x1b2230, 1);
+  body.setStrokeStyle(2, 0xf5a524, 0.28);
 
-  core = scene.add.circle(480, 270, CORE_RADIUS, 0xf5a524, 1);
-  core.setStrokeStyle(2, 0xf5f7fa, 0.35);
+  const head = scene.add.circle(-18 * facing, 0, 8, 0x2c364a, 1);
+  head.setStrokeStyle(1, 0xf5f7fa, 0.18);
+
+  const visor = scene.add.rectangle(-18 * facing, 0, 7, 3, 0xf5a524, 0.85);
+
+  const shieldGlow = scene.add.rectangle(SHIELD_OFFSET * facing, 0, SHIELD_WIDTH + 10, SHIELD_HEIGHT + 12, 0xf5a524, 0.06);
+  shieldGlow.setStrokeStyle(1, 0xf5a524, 0.22);
+
+  const shield = scene.add.rectangle(SHIELD_OFFSET * facing, 0, SHIELD_WIDTH, SHIELD_HEIGHT, 0xf5a524, 0.92);
+  shield.setStrokeStyle(2, 0xf5f7fa, 0.35);
+
+  const shieldStripe = scene.add.rectangle(SHIELD_OFFSET * facing, 0, 4, SHIELD_HEIGHT - 18, 0xf5f7fa, 0.22);
+
+  const container = scene.add.container(x, y, [
+    aura,
+    body,
+    head,
+    visor,
+    shieldGlow,
+    shield,
+    shieldStripe
+  ]);
+
+  return {
+    container,
+    aura,
+    body,
+    head,
+    visor,
+    shieldGlow,
+    shield,
+    shieldStripe,
+    facing
+  };
+}
+
+function createCore() {
+  const scene = sceneRef;
+
+  for (let i = 0; i < 6; i++) {
+    const dot = scene.add.circle(-100, -100, 6 - i * 0.6, 0xf5a524, 0);
+    dot.setDepth(120);
+    trailDots.push(dot);
+  }
+
+  coreGlow = scene.add.circle(480, 270, 20, 0xf5a524, 0.15);
+  coreGlow.setStrokeStyle(2, 0xf5a524, 0.18);
+
+  core = scene.add.circle(480, 270, CORE_RADIUS, 0xff8a00, 1);
+  core.setStrokeStyle(2, 0xf5f7fa, 0.4);
+
+  coreInner = scene.add.circle(480, 270, 5, 0xfff1b8, 1);
+
+  coreGlow.setDepth(200);
+  core.setDepth(201);
+  coreInner.setDepth(202);
 }
 
 function createHelpText() {
   const scene = sceneRef;
 
-  scene.add.text(480, 510, 'SCOOR VIA HET KLEINE DOEL // W/S LINKS // PIJLEN RECHTS', {
+  scene.add.text(480, 510, 'FIGHTER + SHIELD TEST // W/S LINKS // PIJLEN RECHTS', {
     fontFamily: 'Courier New',
     fontSize: '14px',
     color: '#f5f7fa'
@@ -333,54 +395,66 @@ function createInput() {
   cursors = scene.input.keyboard.createCursorKeys();
 }
 
-function moveLeftUnit(dt) {
+function moveLeftFighter(dt) {
   if (leftKeys.up.isDown) {
-    leftUnit.y -= UNIT_SPEED * dt;
+    leftFighter.container.y -= UNIT_SPEED * dt;
   }
 
   if (leftKeys.down.isDown) {
-    leftUnit.y += UNIT_SPEED * dt;
+    leftFighter.container.y += UNIT_SPEED * dt;
   }
 
-  leftUnit.y = Phaser.Math.Clamp(leftUnit.y, 80, 460);
+  leftFighter.container.y = Phaser.Math.Clamp(leftFighter.container.y, 80, 460);
 }
 
-function moveRightUnit(dt) {
+function moveRightFighter(dt) {
   if (cursors.up.isDown) {
-    rightUnit.y -= UNIT_SPEED * dt;
+    rightFighter.container.y -= UNIT_SPEED * dt;
   }
 
   if (cursors.down.isDown) {
-    rightUnit.y += UNIT_SPEED * dt;
+    rightFighter.container.y += UNIT_SPEED * dt;
   }
 
-  rightUnit.y = Phaser.Math.Clamp(rightUnit.y, 80, 460);
+  rightFighter.container.y = Phaser.Math.Clamp(rightFighter.container.y, 80, 460);
 }
 
 function moveCore(dt) {
   core.x += coreVelocityX * dt;
   core.y += coreVelocityY * dt;
 
+  syncCoreVisuals();
+
   if (core.y - CORE_RADIUS <= ARENA_TOP) {
     core.y = ARENA_TOP + CORE_RADIUS;
     coreVelocityY *= -1;
+    syncCoreVisuals();
   }
 
   if (core.y + CORE_RADIUS >= ARENA_BOTTOM) {
     core.y = ARENA_BOTTOM - CORE_RADIUS;
     coreVelocityY *= -1;
+    syncCoreVisuals();
   }
 
-  if (isCoreTouchingUnit(leftUnit, core) && coreVelocityX < 0) {
-    core.x = leftUnit.x + 24;
+  if (isCoreTouchingShield(leftFighter) && coreVelocityX < 0) {
+    const shieldX = getShieldCenterX(leftFighter);
+    core.x = shieldX + SHIELD_WIDTH / 2 + CORE_RADIUS;
     coreVelocityX = Math.abs(coreVelocityX) * 1.03;
-    coreVelocityY += (core.y - leftUnit.y) * 4;
+    coreVelocityY += (core.y - leftFighter.container.y) * 4.2;
+    onShieldHit(leftFighter);
+    onCoreHit();
+    syncCoreVisuals();
   }
 
-  if (isCoreTouchingUnit(rightUnit, core) && coreVelocityX > 0) {
-    core.x = rightUnit.x - 24;
+  if (isCoreTouchingShield(rightFighter) && coreVelocityX > 0) {
+    const shieldX = getShieldCenterX(rightFighter);
+    core.x = shieldX - SHIELD_WIDTH / 2 - CORE_RADIUS;
     coreVelocityX = -Math.abs(coreVelocityX) * 1.03;
-    coreVelocityY += (core.y - rightUnit.y) * 4;
+    coreVelocityY += (core.y - rightFighter.container.y) * 4.2;
+    onShieldHit(rightFighter);
+    onCoreHit();
+    syncCoreVisuals();
   }
 
   handleLeftBackWall();
@@ -396,6 +470,7 @@ function handleLeftBackWall() {
     } else {
       core.x = ARENA_LEFT + CORE_RADIUS;
       coreVelocityX = Math.abs(coreVelocityX);
+      syncCoreVisuals();
     }
   }
 }
@@ -409,6 +484,7 @@ function handleRightBackWall() {
     } else {
       core.x = ARENA_RIGHT - CORE_RADIUS;
       coreVelocityX = -Math.abs(coreVelocityX);
+      syncCoreVisuals();
     }
   }
 }
@@ -431,11 +507,15 @@ function scoreGoal(side) {
   }
 
   core.setVisible(false);
+  coreGlow.setVisible(false);
+  coreInner.setVisible(false);
 
   sceneRef.time.delayedCall(1250, () => {
     hideHeroGoalOverlay();
     resetCore(false);
     core.setVisible(true);
+    coreGlow.setVisible(true);
+    coreInner.setVisible(true);
     roundPaused = false;
   });
 }
@@ -455,7 +535,6 @@ function playGoalEffect(side) {
   const flash = side === 'left' ? leftGoalFlash : rightGoalFlash;
   const burstX = side === 'left' ? 90 : 870;
 
-  // Doelflash
   flash.setAlpha(1);
 
   scene.tweens.add({
@@ -464,7 +543,6 @@ function playGoalEffect(side) {
     duration: 520
   });
 
-  // Schermreactie
   scene.cameras.main.shake(180, 0.008);
   scene.cameras.main.flash(180, 245, 165, 36, false);
 
@@ -482,7 +560,6 @@ function playGoalEffect(side) {
     duration: 420
   });
 
-  // Grote ringen bij doel
   for (let i = 0; i < 8; i++) {
     const ring = scene.add.circle(burstX, 270, 12 + i * 6, 0xf5a524, 0.18);
     ring.setStrokeStyle(2, 0xf5f7fa, 0.24);
@@ -497,7 +574,6 @@ function playGoalEffect(side) {
     });
   }
 
-  // Energy sparks
   for (let i = 0; i < 18; i++) {
     const spark = scene.add.circle(burstX, 270, Phaser.Math.Between(2, 5), 0xf5a524, 1);
     spark.setDepth(1005);
@@ -604,15 +680,103 @@ function hideHeroGoalOverlay() {
   centerOverlayPulse2.setVisible(false);
 }
 
-function isCoreTouchingUnit(unit, coreObject) {
-  const horizontalHit = Math.abs(coreObject.x - unit.x) < (UNIT_WIDTH / 2 + CORE_RADIUS);
-  const verticalHit = Math.abs(coreObject.y - unit.y) < (UNIT_HEIGHT / 2 + CORE_RADIUS);
+function getShieldCenterX(fighter) {
+  return fighter.container.x + SHIELD_OFFSET * fighter.facing;
+}
+
+function isCoreTouchingShield(fighter) {
+  const shieldX = getShieldCenterX(fighter);
+  const horizontalHit = Math.abs(core.x - shieldX) < (SHIELD_WIDTH / 2 + CORE_RADIUS);
+  const verticalHit = Math.abs(core.y - fighter.container.y) < (SHIELD_HEIGHT / 2 + CORE_RADIUS);
   return horizontalHit && verticalHit;
+}
+
+function onShieldHit(fighter) {
+  sceneRef.tweens.add({
+    targets: [fighter.shield, fighter.shieldGlow],
+    scaleX: 1.18,
+    alpha: 1,
+    yoyo: true,
+    duration: 90
+  });
+
+  sceneRef.tweens.add({
+    targets: fighter.container,
+    x: fighter.container.x - 5 * fighter.facing,
+    yoyo: true,
+    duration: 70
+  });
+
+  fighter.shield.setFillStyle(0xffc15a, 1);
+  fighter.shieldGlow.setAlpha(0.22);
+
+  sceneRef.time.delayedCall(90, () => {
+    fighter.shield.setFillStyle(0xf5a524, 0.92);
+    fighter.shieldGlow.setAlpha(0.06);
+  });
+}
+
+function onCoreHit() {
+  trailActiveTime = 220;
+
+  sceneRef.tweens.add({
+    targets: coreGlow,
+    scaleX: 1.5,
+    scaleY: 1.5,
+    alpha: 0.35,
+    yoyo: true,
+    duration: 90
+  });
+
+  sceneRef.tweens.add({
+    targets: coreInner,
+    scaleX: 1.6,
+    scaleY: 1.6,
+    yoyo: true,
+    duration: 80
+  });
+}
+
+function updateTrail(dt) {
+  trailHistory.unshift({ x: core.x, y: core.y });
+
+  if (trailHistory.length > 18) {
+    trailHistory.pop();
+  }
+
+  if (trailActiveTime > 0) {
+    trailActiveTime -= dt * 1000;
+
+    for (let i = 0; i < trailDots.length; i++) {
+      const historyIndex = 2 + i * 2;
+      const point = trailHistory[historyIndex];
+
+      if (point) {
+        trailDots[i].setVisible(true);
+        trailDots[i].x = point.x;
+        trailDots[i].y = point.y;
+        trailDots[i].setAlpha(0.22 - i * 0.03);
+      }
+    }
+  } else {
+    for (let i = 0; i < trailDots.length; i++) {
+      trailDots[i].setVisible(false);
+    }
+  }
+}
+
+function syncCoreVisuals() {
+  coreGlow.x = core.x;
+  coreGlow.y = core.y;
+
+  coreInner.x = core.x;
+  coreInner.y = core.y;
 }
 
 function resetCore(isFirstStart) {
   core.x = GAME_WIDTH / 2;
   core.y = GAME_HEIGHT / 2;
+  syncCoreVisuals();
 
   const direction = Math.random() < 0.5 ? -1 : 1;
   coreVelocityX = START_CORE_SPEED_X * direction;
