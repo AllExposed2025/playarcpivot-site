@@ -31,6 +31,11 @@ let rightGoalFlash;
 let leftScoreText;
 let rightScoreText;
 
+let centerOverlayBg;
+let centerOverlayTitle;
+let centerOverlaySub;
+let centerOverlayPulse;
+
 let leftKeys;
 let cursors;
 
@@ -64,6 +69,7 @@ function create() {
   createGoals();
   createUnitsAndCore();
   createHelpText();
+  createCenterScoreOverlay();
   createInput();
 
   resetCore(true);
@@ -84,21 +90,17 @@ function update(time, delta) {
 function drawArena() {
   const scene = sceneRef;
 
-  // Achtergrond
   scene.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x0b0f14);
 
-  // Buitenrand
   const border = scene.add.graphics();
   border.lineStyle(2, 0xf5a524, 0.6);
   border.strokeRect(ARENA_LEFT, ARENA_TOP, 920, 500);
 
-  // Middenlijn
   const middle = scene.add.graphics();
   middle.lineStyle(2, 0xf5a524, 0.25);
   middle.lineBetween(GAME_WIDTH / 2, 30, GAME_WIDTH / 2, 510);
 
-  // Titel bovenin arena
-  scene.add.text(480, 40, 'DUEL ARENA // GOAL TEST', {
+  scene.add.text(480, 40, 'ARCPIVOT RUSH DUEL', {
     fontFamily: 'Courier New',
     fontSize: '18px',
     color: '#f5a524'
@@ -124,17 +126,14 @@ function createScoreboard() {
 function createGoals() {
   const scene = sceneRef;
 
-  // Linker doel frame
   const leftGoalFrame = scene.add.graphics();
   leftGoalFrame.lineStyle(2, 0xf5a524, 0.75);
   leftGoalFrame.strokeRect(ARENA_LEFT, GOAL_TOP, GOAL_WIDTH, GOAL_HEIGHT);
 
-  // Rechter doel frame
   const rightGoalFrame = scene.add.graphics();
   rightGoalFrame.lineStyle(2, 0xf5a524, 0.75);
   rightGoalFrame.strokeRect(ARENA_RIGHT - GOAL_WIDTH, GOAL_TOP, GOAL_WIDTH, GOAL_HEIGHT);
 
-  // Linker doel glow
   scene.add.rectangle(
     ARENA_LEFT + GOAL_WIDTH / 2,
     GAME_HEIGHT / 2,
@@ -144,7 +143,6 @@ function createGoals() {
     0.18
   );
 
-  // Rechter doel glow
   scene.add.rectangle(
     ARENA_RIGHT - GOAL_WIDTH / 2,
     GAME_HEIGHT / 2,
@@ -154,12 +152,11 @@ function createGoals() {
     0.18
   );
 
-  // Flash overlays
   leftGoalFlash = scene.add.rectangle(
     ARENA_LEFT + GOAL_WIDTH / 2,
     GAME_HEIGHT / 2,
-    GOAL_WIDTH + 24,
-    GOAL_HEIGHT + 20,
+    GOAL_WIDTH + 28,
+    GOAL_HEIGHT + 30,
     0xf5a524,
     0
   );
@@ -167,8 +164,8 @@ function createGoals() {
   rightGoalFlash = scene.add.rectangle(
     ARENA_RIGHT - GOAL_WIDTH / 2,
     GAME_HEIGHT / 2,
-    GOAL_WIDTH + 24,
-    GOAL_HEIGHT + 20,
+    GOAL_WIDTH + 28,
+    GOAL_HEIGHT + 30,
     0xf5a524,
     0
   );
@@ -195,6 +192,33 @@ function createHelpText() {
     fontSize: '14px',
     color: '#f5f7fa'
   }).setOrigin(0.5);
+}
+
+function createCenterScoreOverlay() {
+  const scene = sceneRef;
+
+  centerOverlayBg = scene.add.rectangle(480, 270, 520, 180, 0x0b0f14, 0.86);
+  centerOverlayBg.setStrokeStyle(2, 0xf5a524, 0.5);
+  centerOverlayBg.setVisible(false);
+
+  centerOverlayTitle = scene.add.text(480, 240, '', {
+    fontFamily: 'Courier New',
+    fontSize: '34px',
+    color: '#f5a524',
+    fontStyle: 'bold'
+  }).setOrigin(0.5);
+  centerOverlayTitle.setVisible(false);
+
+  centerOverlaySub = scene.add.text(480, 290, '', {
+    fontFamily: 'Courier New',
+    fontSize: '18px',
+    color: '#f5f7fa'
+  }).setOrigin(0.5);
+  centerOverlaySub.setVisible(false);
+
+  centerOverlayPulse = scene.add.circle(480, 270, 40, 0xf5a524, 0.18);
+  centerOverlayPulse.setStrokeStyle(3, 0xf5f7fa, 0.45);
+  centerOverlayPulse.setVisible(false);
 }
 
 function createInput() {
@@ -236,26 +260,22 @@ function moveCore(dt) {
   core.x += coreVelocityX * dt;
   core.y += coreVelocityY * dt;
 
-  // Bovenkant
   if (core.y - CORE_RADIUS <= ARENA_TOP) {
     core.y = ARENA_TOP + CORE_RADIUS;
     coreVelocityY *= -1;
   }
 
-  // Onderkant
   if (core.y + CORE_RADIUS >= ARENA_BOTTOM) {
     core.y = ARENA_BOTTOM - CORE_RADIUS;
     coreVelocityY *= -1;
   }
 
-  // Linker speler raken
   if (isCoreTouchingUnit(leftUnit, core) && coreVelocityX < 0) {
     core.x = leftUnit.x + 24;
     coreVelocityX = Math.abs(coreVelocityX) * 1.03;
     coreVelocityY += (core.y - leftUnit.y) * 4;
   }
 
-  // Rechter speler raken
   if (isCoreTouchingUnit(rightUnit, core) && coreVelocityX > 0) {
     core.x = rightUnit.x - 24;
     coreVelocityX = -Math.abs(coreVelocityX) * 1.03;
@@ -299,15 +319,18 @@ function scoreGoal(side) {
     leftScore++;
     leftScoreText.setText(String(leftScore));
     playGoalEffect('left');
+    showCenterScoreOverlay('PLAYER ONE SCORES', 'LEFT SIDE // CORE BREAK');
   } else {
     rightScore++;
     rightScoreText.setText(String(rightScore));
     playGoalEffect('right');
+    showCenterScoreOverlay('PLAYER TWO SCORES', 'RIGHT SIDE // CORE BREAK');
   }
 
   core.setVisible(false);
 
-  sceneRef.time.delayedCall(450, () => {
+  sceneRef.time.delayedCall(900, () => {
+    hideCenterScoreOverlay();
     resetCore(false);
     core.setVisible(true);
     roundPaused = false;
@@ -317,45 +340,84 @@ function scoreGoal(side) {
 function playGoalEffect(side) {
   const scene = sceneRef;
   const flash = side === 'left' ? leftGoalFlash : rightGoalFlash;
-  const x = side === 'left' ? 120 : 840;
 
-  flash.setAlpha(0.95);
+  flash.setAlpha(1);
 
   scene.tweens.add({
     targets: flash,
     alpha: 0,
-    duration: 280
+    duration: 420
   });
 
-  const goalText = scene.add.text(x, 270, 'GOAL!', {
-    fontFamily: 'Courier New',
-    fontSize: '28px',
-    color: '#f5a524'
-  }).setOrigin(0.5);
+  const burstX = side === 'left' ? 90 : 870;
+
+  for (let i = 0; i < 6; i++) {
+    const pulse = scene.add.circle(burstX, 270, 14 + i * 4, 0xf5a524, 0.22);
+    pulse.setStrokeStyle(2, 0xf5f7fa, 0.28);
+
+    scene.tweens.add({
+      targets: pulse,
+      scaleX: 2.2,
+      scaleY: 2.2,
+      alpha: 0,
+      duration: 420 + i * 40,
+      onComplete: () => pulse.destroy()
+    });
+  }
+}
+
+function showCenterScoreOverlay(title, sub) {
+  const scene = sceneRef;
+
+  centerOverlayBg.setVisible(true);
+  centerOverlayBg.setAlpha(0);
+
+  centerOverlayTitle.setText(title);
+  centerOverlayTitle.setVisible(true);
+  centerOverlayTitle.setAlpha(0);
+  centerOverlayTitle.setScale(0.85);
+
+  centerOverlaySub.setText(sub);
+  centerOverlaySub.setVisible(true);
+  centerOverlaySub.setAlpha(0);
+
+  centerOverlayPulse.setVisible(true);
+  centerOverlayPulse.setAlpha(0.35);
+  centerOverlayPulse.setScale(1);
 
   scene.tweens.add({
-    targets: goalText,
-    y: 235,
-    alpha: 0,
-    duration: 420,
-    onComplete: () => {
-      goalText.destroy();
-    }
+    targets: centerOverlayBg,
+    alpha: 1,
+    duration: 180
   });
-
-  const pulse = scene.add.circle(x, 270, 18, 0xf5a524, 0.35);
-  pulse.setStrokeStyle(2, 0xf5f7fa, 0.4);
 
   scene.tweens.add({
-    targets: pulse,
-    scaleX: 4,
-    scaleY: 4,
-    alpha: 0,
-    duration: 420,
-    onComplete: () => {
-      pulse.destroy();
-    }
+    targets: centerOverlayTitle,
+    alpha: 1,
+    scale: 1,
+    duration: 220
   });
+
+  scene.tweens.add({
+    targets: centerOverlaySub,
+    alpha: 1,
+    duration: 260
+  });
+
+  scene.tweens.add({
+    targets: centerOverlayPulse,
+    scaleX: 5,
+    scaleY: 5,
+    alpha: 0,
+    duration: 520
+  });
+}
+
+function hideCenterScoreOverlay() {
+  centerOverlayBg.setVisible(false);
+  centerOverlayTitle.setVisible(false);
+  centerOverlaySub.setVisible(false);
+  centerOverlayPulse.setVisible(false);
 }
 
 function isCoreTouchingUnit(unit, coreObject) {
