@@ -1,10 +1,13 @@
 const GAME_WIDTH = 960;
-const GAME_HEIGHT = 540;
+const GAME_HEIGHT = 620;
 
 const ARENA_LEFT = 20;
 const ARENA_RIGHT = 940;
-const ARENA_TOP = 20;
-const ARENA_BOTTOM = 520;
+const ARENA_TOP = 110;
+const ARENA_BOTTOM = 600;
+
+const ARENA_CENTER_X = (ARENA_LEFT + ARENA_RIGHT) / 2;
+const ARENA_CENTER_Y = (ARENA_TOP + ARENA_BOTTOM) / 2;
 
 const UNIT_SPEED = 360;
 
@@ -17,9 +20,11 @@ const START_CORE_SPEED_X = 320;
 const START_CORE_SPEED_Y = 180;
 
 const GOAL_WIDTH = 14;
-const GOAL_HEIGHT = 140;
-const GOAL_TOP = (GAME_HEIGHT - GOAL_HEIGHT) / 2;
-const GOAL_BOTTOM = GOAL_TOP + GOAL_HEIGHT;
+const GOAL_HEIGHT = 150;
+const GOAL_TOP = ARENA_CENTER_Y - GOAL_HEIGHT / 2;
+const GOAL_BOTTOM = ARENA_CENTER_Y + GOAL_HEIGHT / 2;
+
+const POST_RADIUS = 12;
 
 let sceneRef;
 
@@ -37,6 +42,8 @@ let trailActiveTime = 0;
 let leftGoalFlash;
 let rightGoalFlash;
 
+let leftScoreOrb;
+let rightScoreOrb;
 let leftScoreText;
 let rightScoreText;
 
@@ -62,6 +69,9 @@ let coreVelocityX = START_CORE_SPEED_X;
 let coreVelocityY = START_CORE_SPEED_Y;
 
 let roundPaused = false;
+let postHitCooldown = 0;
+
+let goalPosts = [];
 
 const config = {
   type: Phaser.AUTO,
@@ -81,8 +91,8 @@ function create() {
   sceneRef = this;
 
   drawArena();
-  createScoreboard();
-  createGoals();
+  createExternalScoreboard();
+  createGoalsAndPosts();
   createFighters();
   createCore();
   createHelpText();
@@ -96,6 +106,10 @@ function update(time, delta) {
   const dt = delta / 1000;
 
   updateTrail(dt);
+
+  if (postHitCooldown > 0) {
+    postHitCooldown -= delta;
+  }
 
   if (roundPaused) {
     return;
@@ -111,29 +125,41 @@ function drawArena() {
 
   scene.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x0b0f14);
 
-  const border = scene.add.graphics();
-  border.lineStyle(2, 0xf5a524, 0.6);
-  border.strokeRect(ARENA_LEFT, ARENA_TOP, 920, 500);
-
-  arenaGlow = scene.add.rectangle(480, 270, 930, 510, 0xf5a524, 0);
-  arenaGlow.setStrokeStyle(2, 0xf5a524, 0.25);
-
-  const middle = scene.add.graphics();
-  middle.lineStyle(2, 0xf5a524, 0.25);
-  middle.lineBetween(GAME_WIDTH / 2, 30, GAME_WIDTH / 2, 510);
-
-  drawCornerAccent(scene, 34, 34, 'tl');
-  drawCornerAccent(scene, 926, 34, 'tr');
-  drawCornerAccent(scene, 34, 506, 'bl');
-  drawCornerAccent(scene, 926, 506, 'br');
-
-  scene.add.text(480, 40, 'ARCPIVOT RUSH DUEL', {
+  // Titel
+  scene.add.text(ARENA_CENTER_X, 26, 'ARCPIVOT RUSH DUEL', {
     fontFamily: 'Courier New',
     fontSize: '18px',
     color: '#f5a524'
   }).setOrigin(0.5);
 
-  screenFlash = scene.add.rectangle(480, 270, GAME_WIDTH, GAME_HEIGHT, 0xf5a524, 0);
+  // Buitenkader arena
+  const border = scene.add.graphics();
+  border.lineStyle(2, 0xf5a524, 0.6);
+  border.strokeRect(ARENA_LEFT, ARENA_TOP, ARENA_RIGHT - ARENA_LEFT, ARENA_BOTTOM - ARENA_TOP);
+
+  arenaGlow = scene.add.rectangle(
+    ARENA_CENTER_X,
+    ARENA_CENTER_Y,
+    (ARENA_RIGHT - ARENA_LEFT) + 10,
+    (ARENA_BOTTOM - ARENA_TOP) + 10,
+    0xf5a524,
+    0
+  );
+  arenaGlow.setStrokeStyle(2, 0xf5a524, 0.25);
+
+  // Middenlijn
+  const middle = scene.add.graphics();
+  middle.lineStyle(2, 0xf5a524, 0.25);
+  middle.lineBetween(ARENA_CENTER_X, ARENA_TOP + 10, ARENA_CENTER_X, ARENA_BOTTOM - 10);
+
+  // Hoekaccenten
+  drawCornerAccent(scene, ARENA_LEFT + 14, ARENA_TOP + 14, 'tl');
+  drawCornerAccent(scene, ARENA_RIGHT - 14, ARENA_TOP + 14, 'tr');
+  drawCornerAccent(scene, ARENA_LEFT + 14, ARENA_BOTTOM - 14, 'bl');
+  drawCornerAccent(scene, ARENA_RIGHT - 14, ARENA_BOTTOM - 14, 'br');
+
+  // Schermflash
+  screenFlash = scene.add.rectangle(ARENA_CENTER_X, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0xf5a524, 0);
   screenFlash.setDepth(900);
 }
 
@@ -162,78 +188,87 @@ function drawCornerAccent(scene, x, y, corner) {
   }
 }
 
-function createScoreboard() {
+function createExternalScoreboard() {
   const scene = sceneRef;
 
-  const leftPanel = scene.add.rectangle(220, 40, 70, 38, 0x0b0f14, 0.7);
-  leftPanel.setStrokeStyle(1, 0xf5a524, 0.35);
+  // Hangers
+  const hanger = scene.add.graphics();
+  hanger.lineStyle(2, 0xf5a524, 0.4);
+  hanger.lineBetween(300, 36, 300, 66);
+  hanger.lineBetween(660, 36, 660, 66);
+  hanger.lineBetween(300, 36, 660, 36);
 
-  const rightPanel = scene.add.rectangle(740, 40, 70, 38, 0x0b0f14, 0.7);
-  rightPanel.setStrokeStyle(1, 0xf5a524, 0.35);
+  // Middenlabel
+  const labelBg = scene.add.rectangle(480, 60, 220, 26, 0x0b0f14, 0.8);
+  labelBg.setStrokeStyle(1, 0xf5a524, 0.35);
 
-  leftScoreText = scene.add.text(220, 40, '0', {
+  scene.add.text(480, 60, 'ARENA SCOREBOARD', {
     fontFamily: 'Courier New',
-    fontSize: '32px',
+    fontSize: '14px',
+    color: '#f5a524'
+  }).setOrigin(0.5);
+
+  // Linker score-globe
+  leftScoreOrb = scene.add.circle(300, 82, 28, 0x172133, 1);
+  leftScoreOrb.setStrokeStyle(2, 0xf5a524, 0.8);
+
+  scene.add.circle(292, 74, 8, 0xf5f7fa, 0.06);
+
+  // Rechter score-globe
+  rightScoreOrb = scene.add.circle(660, 82, 28, 0x172133, 1);
+  rightScoreOrb.setStrokeStyle(2, 0xf5a524, 0.8);
+
+  scene.add.circle(652, 74, 8, 0xf5f7fa, 0.06);
+
+  // Scores
+  leftScoreText = scene.add.text(300, 82, '0', {
+    fontFamily: 'Courier New',
+    fontSize: '28px',
     color: '#f5f7fa'
   }).setOrigin(0.5);
 
-  rightScoreText = scene.add.text(740, 40, '0', {
+  rightScoreText = scene.add.text(660, 82, '0', {
     fontFamily: 'Courier New',
-    fontSize: '32px',
+    fontSize: '28px',
     color: '#f5f7fa'
   }).setOrigin(0.5);
 }
 
-function createGoals() {
+function createGoalsAndPosts() {
   const scene = sceneRef;
 
+  // Doelglow links
   const leftGoalFrame = scene.add.graphics();
-  leftGoalFrame.lineStyle(2, 0xf5a524, 0.8);
+  leftGoalFrame.lineStyle(2, 0xf5a524, 0.7);
   leftGoalFrame.strokeRect(ARENA_LEFT, GOAL_TOP, GOAL_WIDTH, GOAL_HEIGHT);
 
   scene.add.rectangle(
     ARENA_LEFT + GOAL_WIDTH / 2,
-    GAME_HEIGHT / 2,
+    ARENA_CENTER_Y,
     GOAL_WIDTH - 4,
     GOAL_HEIGHT - 8,
     0xf5a524,
-    0.22
+    0.18
   );
 
-  scene.add.rectangle(
-    ARENA_LEFT + GOAL_WIDTH + 5,
-    GAME_HEIGHT / 2,
-    6,
-    GOAL_HEIGHT - 18,
-    0xf5a524,
-    0.08
-  );
-
+  // Doelglow rechts
   const rightGoalFrame = scene.add.graphics();
-  rightGoalFrame.lineStyle(2, 0xf5a524, 0.8);
+  rightGoalFrame.lineStyle(2, 0xf5a524, 0.7);
   rightGoalFrame.strokeRect(ARENA_RIGHT - GOAL_WIDTH, GOAL_TOP, GOAL_WIDTH, GOAL_HEIGHT);
 
   scene.add.rectangle(
     ARENA_RIGHT - GOAL_WIDTH / 2,
-    GAME_HEIGHT / 2,
+    ARENA_CENTER_Y,
     GOAL_WIDTH - 4,
     GOAL_HEIGHT - 8,
     0xf5a524,
-    0.22
+    0.18
   );
 
-  scene.add.rectangle(
-    ARENA_RIGHT - GOAL_WIDTH - 5,
-    GAME_HEIGHT / 2,
-    6,
-    GOAL_HEIGHT - 18,
-    0xf5a524,
-    0.08
-  );
-
+  // Goal flashes
   leftGoalFlash = scene.add.rectangle(
     ARENA_LEFT + GOAL_WIDTH / 2,
-    GAME_HEIGHT / 2,
+    ARENA_CENTER_Y,
     90,
     GOAL_HEIGHT + 50,
     0xf5a524,
@@ -242,17 +277,37 @@ function createGoals() {
 
   rightGoalFlash = scene.add.rectangle(
     ARENA_RIGHT - GOAL_WIDTH / 2,
-    GAME_HEIGHT / 2,
+    ARENA_CENTER_Y,
     90,
     GOAL_HEIGHT + 50,
     0xf5a524,
     0
   );
+
+  // Ronde doelpalen
+  goalPosts = [
+    createGoalPost(ARENA_LEFT + GOAL_WIDTH, GOAL_TOP),
+    createGoalPost(ARENA_LEFT + GOAL_WIDTH, GOAL_BOTTOM),
+    createGoalPost(ARENA_RIGHT - GOAL_WIDTH, GOAL_TOP),
+    createGoalPost(ARENA_RIGHT - GOAL_WIDTH, GOAL_BOTTOM)
+  ];
+}
+
+function createGoalPost(x, y) {
+  const scene = sceneRef;
+
+  const glow = scene.add.circle(x, y, POST_RADIUS + 7, 0xf5a524, 0.08);
+  const post = scene.add.circle(x, y, POST_RADIUS, 0x2d374b, 1);
+  post.setStrokeStyle(2, 0xf5a524, 0.75);
+
+  const inner = scene.add.circle(x - 2, y - 2, 4, 0xf5f7fa, 0.12);
+
+  return { x, y, glow, post, inner };
 }
 
 function createFighters() {
-  leftFighter = createFighter(76, 270, 1);
-  rightFighter = createFighter(884, 270, -1);
+  leftFighter = createFighter(76, ARENA_CENTER_Y, 1);
+  rightFighter = createFighter(884, ARENA_CENTER_Y, -1);
 }
 
 function createFighter(x, y, facing) {
@@ -308,13 +363,13 @@ function createCore() {
     trailDots.push(dot);
   }
 
-  coreGlow = scene.add.circle(480, 270, 20, 0xf5a524, 0.15);
+  coreGlow = scene.add.circle(ARENA_CENTER_X, ARENA_CENTER_Y, 20, 0xf5a524, 0.15);
   coreGlow.setStrokeStyle(2, 0xf5a524, 0.18);
 
-  core = scene.add.circle(480, 270, CORE_RADIUS, 0xff8a00, 1);
+  core = scene.add.circle(ARENA_CENTER_X, ARENA_CENTER_Y, CORE_RADIUS, 0xff8a00, 1);
   core.setStrokeStyle(2, 0xf5f7fa, 0.4);
 
-  coreInner = scene.add.circle(480, 270, 5, 0xfff1b8, 1);
+  coreInner = scene.add.circle(ARENA_CENTER_X, ARENA_CENTER_Y, 5, 0xfff1b8, 1);
 
   coreGlow.setDepth(200);
   core.setDepth(201);
@@ -324,7 +379,7 @@ function createCore() {
 function createHelpText() {
   const scene = sceneRef;
 
-  scene.add.text(480, 510, 'FIGHTER + SHIELD TEST // W/S LINKS // PIJLEN RECHTS', {
+  scene.add.text(ARENA_CENTER_X, 590, 'ROUND POSTS ACTIVE // SCOREBOARD OUTSIDE ARENA', {
     fontFamily: 'Courier New',
     fontSize: '14px',
     color: '#f5f7fa'
@@ -334,16 +389,16 @@ function createHelpText() {
 function createHeroGoalOverlay() {
   const scene = sceneRef;
 
-  centerOverlayBg = scene.add.rectangle(480, 270, 620, 220, 0x0b0f14, 0.92);
+  centerOverlayBg = scene.add.rectangle(ARENA_CENTER_X, ARENA_CENTER_Y, 620, 220, 0x0b0f14, 0.92);
   centerOverlayBg.setVisible(false);
   centerOverlayBg.setDepth(1000);
 
-  centerOverlayBorder = scene.add.rectangle(480, 270, 620, 220, 0x000000, 0);
+  centerOverlayBorder = scene.add.rectangle(ARENA_CENTER_X, ARENA_CENTER_Y, 620, 220, 0x000000, 0);
   centerOverlayBorder.setStrokeStyle(2, 0xf5a524, 0.65);
   centerOverlayBorder.setVisible(false);
   centerOverlayBorder.setDepth(1001);
 
-  centerOverlayTitle = scene.add.text(480, 230, '', {
+  centerOverlayTitle = scene.add.text(ARENA_CENTER_X, ARENA_CENTER_Y - 40, '', {
     fontFamily: 'Courier New',
     fontSize: '42px',
     color: '#f5a524',
@@ -352,7 +407,7 @@ function createHeroGoalOverlay() {
   centerOverlayTitle.setVisible(false);
   centerOverlayTitle.setDepth(1002);
 
-  centerOverlaySub = scene.add.text(480, 290, '', {
+  centerOverlaySub = scene.add.text(ARENA_CENTER_X, ARENA_CENTER_Y + 20, '', {
     fontFamily: 'Courier New',
     fontSize: '20px',
     color: '#f5f7fa'
@@ -360,12 +415,12 @@ function createHeroGoalOverlay() {
   centerOverlaySub.setVisible(false);
   centerOverlaySub.setDepth(1002);
 
-  centerOverlayBadge = scene.add.rectangle(480, 335, 200, 42, 0xf5a524, 0.18);
+  centerOverlayBadge = scene.add.rectangle(ARENA_CENTER_X, ARENA_CENTER_Y + 65, 200, 42, 0xf5a524, 0.18);
   centerOverlayBadge.setStrokeStyle(1, 0xf5a524, 0.7);
   centerOverlayBadge.setVisible(false);
   centerOverlayBadge.setDepth(1002);
 
-  centerOverlayBadgeText = scene.add.text(480, 335, '', {
+  centerOverlayBadgeText = scene.add.text(ARENA_CENTER_X, ARENA_CENTER_Y + 65, '', {
     fontFamily: 'Courier New',
     fontSize: '18px',
     color: '#f5a524'
@@ -373,12 +428,12 @@ function createHeroGoalOverlay() {
   centerOverlayBadgeText.setVisible(false);
   centerOverlayBadgeText.setDepth(1003);
 
-  centerOverlayPulse = scene.add.circle(480, 270, 45, 0xf5a524, 0.18);
+  centerOverlayPulse = scene.add.circle(ARENA_CENTER_X, ARENA_CENTER_Y, 45, 0xf5a524, 0.18);
   centerOverlayPulse.setStrokeStyle(3, 0xf5f7fa, 0.45);
   centerOverlayPulse.setVisible(false);
   centerOverlayPulse.setDepth(999);
 
-  centerOverlayPulse2 = scene.add.circle(480, 270, 20, 0xf5a524, 0.12);
+  centerOverlayPulse2 = scene.add.circle(ARENA_CENTER_X, ARENA_CENTER_Y, 20, 0xf5a524, 0.12);
   centerOverlayPulse2.setStrokeStyle(2, 0xf5a524, 0.35);
   centerOverlayPulse2.setVisible(false);
   centerOverlayPulse2.setDepth(999);
@@ -404,7 +459,7 @@ function moveLeftFighter(dt) {
     leftFighter.container.y += UNIT_SPEED * dt;
   }
 
-  leftFighter.container.y = Phaser.Math.Clamp(leftFighter.container.y, 80, 460);
+  leftFighter.container.y = Phaser.Math.Clamp(leftFighter.container.y, ARENA_TOP + 60, ARENA_BOTTOM - 60);
 }
 
 function moveRightFighter(dt) {
@@ -416,7 +471,7 @@ function moveRightFighter(dt) {
     rightFighter.container.y += UNIT_SPEED * dt;
   }
 
-  rightFighter.container.y = Phaser.Math.Clamp(rightFighter.container.y, 80, 460);
+  rightFighter.container.y = Phaser.Math.Clamp(rightFighter.container.y, ARENA_TOP + 60, ARENA_BOTTOM - 60);
 }
 
 function moveCore(dt) {
@@ -457,8 +512,73 @@ function moveCore(dt) {
     syncCoreVisuals();
   }
 
+  handleGoalPostCollisions();
   handleLeftBackWall();
   handleRightBackWall();
+}
+
+function handleGoalPostCollisions() {
+  if (postHitCooldown > 0) {
+    return;
+  }
+
+  for (let i = 0; i < goalPosts.length; i++) {
+    const post = goalPosts[i];
+
+    const dx = core.x - post.x;
+    const dy = core.y - post.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+
+    if (distance <= CORE_RADIUS + POST_RADIUS) {
+      const nx = dx / distance;
+      const ny = dy / distance;
+
+      const dot = coreVelocityX * nx + coreVelocityY * ny;
+
+      if (dot < 0) {
+        coreVelocityX = coreVelocityX - 2 * dot * nx;
+        coreVelocityY = coreVelocityY - 2 * dot * ny;
+
+        coreVelocityX *= 1.02;
+        coreVelocityY *= 1.02;
+
+        core.x = post.x + nx * (CORE_RADIUS + POST_RADIUS + 1);
+        core.y = post.y + ny * (CORE_RADIUS + POST_RADIUS + 1);
+
+        syncCoreVisuals();
+        onCoreHit();
+        onGoalPostHit(post);
+
+        postHitCooldown = 80;
+        break;
+      }
+    }
+  }
+}
+
+function onGoalPostHit(post) {
+  const scene = sceneRef;
+
+  scene.tweens.add({
+    targets: [post.post, post.glow],
+    scaleX: 1.22,
+    scaleY: 1.22,
+    alpha: 1,
+    yoyo: true,
+    duration: 110
+  });
+
+  const ring = scene.add.circle(post.x, post.y, POST_RADIUS + 6, 0xf5a524, 0.18);
+  ring.setStrokeStyle(2, 0xf5f7fa, 0.3);
+
+  scene.tweens.add({
+    targets: ring,
+    scaleX: 2.8,
+    scaleY: 2.8,
+    alpha: 0,
+    duration: 260,
+    onComplete: () => ring.destroy()
+  });
 }
 
 function handleLeftBackWall() {
@@ -495,13 +615,13 @@ function scoreGoal(side) {
   if (side === 'left') {
     leftScore++;
     leftScoreText.setText(String(leftScore));
-    pulseScore(leftScoreText);
+    pulseScore(leftScoreText, leftScoreOrb);
     playGoalEffect('left');
     showHeroGoalOverlay('PLAYER ONE SCORES', 'LEFT SIDE // ARC BREAK', 'PLAYER ONE');
   } else {
     rightScore++;
     rightScoreText.setText(String(rightScore));
-    pulseScore(rightScoreText);
+    pulseScore(rightScoreText, rightScoreOrb);
     playGoalEffect('right');
     showHeroGoalOverlay('PLAYER TWO SCORES', 'RIGHT SIDE // ARC BREAK', 'PLAYER TWO');
   }
@@ -520,13 +640,13 @@ function scoreGoal(side) {
   });
 }
 
-function pulseScore(scoreText) {
+function pulseScore(scoreText, scoreOrb) {
   sceneRef.tweens.add({
-    targets: scoreText,
-    scaleX: 1.35,
-    scaleY: 1.35,
+    targets: [scoreText, scoreOrb],
+    scaleX: 1.22,
+    scaleY: 1.22,
     yoyo: true,
-    duration: 160
+    duration: 180
   });
 }
 
@@ -561,7 +681,7 @@ function playGoalEffect(side) {
   });
 
   for (let i = 0; i < 8; i++) {
-    const ring = scene.add.circle(burstX, 270, 12 + i * 6, 0xf5a524, 0.18);
+    const ring = scene.add.circle(burstX, ARENA_CENTER_Y, 12 + i * 6, 0xf5a524, 0.18);
     ring.setStrokeStyle(2, 0xf5f7fa, 0.24);
 
     scene.tweens.add({
@@ -575,7 +695,7 @@ function playGoalEffect(side) {
   }
 
   for (let i = 0; i < 18; i++) {
-    const spark = scene.add.circle(burstX, 270, Phaser.Math.Between(2, 5), 0xf5a524, 1);
+    const spark = scene.add.circle(burstX, ARENA_CENTER_Y, Phaser.Math.Between(2, 5), 0xf5a524, 1);
     spark.setDepth(1005);
 
     const offsetX = Phaser.Math.Between(-90, 90);
@@ -584,7 +704,7 @@ function playGoalEffect(side) {
     scene.tweens.add({
       targets: spark,
       x: burstX + offsetX,
-      y: 270 + offsetY,
+      y: ARENA_CENTER_Y + offsetY,
       alpha: 0,
       scaleX: 0.2,
       scaleY: 0.2,
@@ -774,8 +894,8 @@ function syncCoreVisuals() {
 }
 
 function resetCore(isFirstStart) {
-  core.x = GAME_WIDTH / 2;
-  core.y = GAME_HEIGHT / 2;
+  core.x = ARENA_CENTER_X;
+  core.y = ARENA_CENTER_Y;
   syncCoreVisuals();
 
   const direction = Math.random() < 0.5 ? -1 : 1;
