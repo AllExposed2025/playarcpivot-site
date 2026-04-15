@@ -5,7 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
   <title>ArcPivot — System Online</title>
 
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+  />
 
   <style>
     :root {
@@ -24,6 +27,10 @@
       padding: 0;
     }
 
+    html, body {
+      min-height: 100%;
+    }
+
     body {
       background: radial-gradient(circle at top, var(--bg-glow), var(--bg-dark));
       color: var(--text-color);
@@ -31,6 +38,7 @@
       overflow-x: hidden;
       animation: backgroundPulse 12s ease-in-out infinite alternate;
       line-height: 1.6;
+      position: relative;
     }
 
     @keyframes backgroundPulse {
@@ -53,19 +61,31 @@
       z-index: 999;
     }
 
+    #matrix {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      pointer-events: none;
+      opacity: 0.22;
+    }
+
     .container {
+      position: relative;
+      z-index: 2;
       max-width: 1100px;
       margin: 0 auto;
       padding: 20px;
     }
 
-    /* Banner */
     .banner {
       position: relative;
       text-align: center;
       padding: 70px 20px 50px;
       border-bottom: 1px solid var(--primary);
       box-shadow: 0 0 30px rgba(245,165,36,0.25);
+      margin-bottom: 10px;
     }
 
     .banner h1 {
@@ -84,13 +104,12 @@
     }
 
     @keyframes glitch {
-      0%,100% { transform: translateX(0); }
+      0%, 100% { transform: translateX(0); }
       25% { transform: translateX(-2px); }
       50% { transform: translateX(2px); }
       75% { transform: translateX(-1px); }
     }
 
-    /* Terminal box */
     .terminal {
       background: var(--terminal-bg);
       border: 1px solid var(--primary);
@@ -98,14 +117,15 @@
       padding: 22px;
       margin: 30px 0;
       box-shadow: 0 0 25px rgba(245,165,36,0.25);
+      backdrop-filter: blur(2px);
     }
 
-    /* Typewriter */
     .typewriter {
       min-height: 160px;
       white-space: pre-wrap;
       font-size: 0.95rem;
       color: var(--primary);
+      text-shadow: 0 0 6px rgba(245,165,36,0.35);
     }
 
     .cursor {
@@ -117,7 +137,6 @@
       to { visibility: hidden; }
     }
 
-    /* Grid blocks */
     .grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(240px,1fr));
@@ -132,7 +151,12 @@
       border-radius: 6px;
     }
 
-    /* CTA */
+    .grid-item strong {
+      color: var(--primary);
+      display: block;
+      margin-bottom: 8px;
+    }
+
     .cta {
       display: flex;
       justify-content: center;
@@ -142,18 +166,21 @@
     }
 
     .btn {
+      display: inline-block;
       padding: 12px 22px;
       border-radius: 6px;
       font-weight: bold;
       text-decoration: none;
       background: var(--primary);
       color: #111;
-      transition: all 0.25s;
+      transition: all 0.25s ease;
+      border: none;
     }
 
     .btn:hover {
       background: var(--primary-dark);
       box-shadow: 0 0 15px rgba(245,165,36,0.6);
+      transform: translateY(-1px);
     }
 
     .footer {
@@ -162,58 +189,86 @@
       font-size: 0.85rem;
       opacity: 0.6;
     }
+
+    @media (max-width: 768px) {
+      .banner {
+        padding: 56px 16px 38px;
+      }
+
+      .terminal {
+        padding: 18px;
+        margin: 22px 0;
+      }
+
+      .typewriter {
+        min-height: 140px;
+      }
+    }
   </style>
 </head>
 
 <body>
+  <canvas id="matrix"></canvas>
 
-<canvas id="matrix"></canvas>
+  <div class="container">
+    <div class="banner">
+      <h1>ARCPIVOT</h1>
+      <h2>SYSTEM ONLINE — SKILL FIRST ARCADE</h2>
+    </div>
 
-<div class="container">
+    <div class="terminal">
+      <div id="typewriter" class="typewriter"></div>
+    </div>
 
-  <div class="banner">
-    <h1>ARCPIVOT</h1>
-    <h2>SYSTEM ONLINE — SKILL FIRST ARCADE</h2>
-  </div>
+    <div class="terminal">
+      <h3>What ArcPivot is</h3>
+      <div class="grid">
+        <div class="grid-item">
+          <strong>Skill Based</strong>
+          Competitive arcade play where skill decides outcomes.
+        </div>
+        <div class="grid-item">
+          <strong>Clear Systems</strong>
+          Rules stay visible and communication stays direct.
+        </div>
+        <div class="grid-item">
+          <strong>Fast Sessions</strong>
+          Built for accessible rounds and low-friction entry.
+        </div>
+        <div class="grid-item">
+          <strong>Proof First</strong>
+          We share progress when it is real, testable, or live.
+        </div>
+      </div>
+    </div>
 
-  <div class="terminal">
-    <div id="typewriter" class="typewriter"></div>
-  </div>
+    <div class="terminal">
+      <h3>What ArcPivot is not</h3>
+      <div class="grid">
+        <div class="grid-item">Not a casino</div>
+        <div class="grid-item">Not pay to win</div>
+        <div class="grid-item">Not a profit promise</div>
+        <div class="grid-item">Not built on noise</div>
+      </div>
+    </div>
 
-  <div class="terminal">
-    <h3>What ArcPivot is</h3>
-    <div class="grid">
-      <div class="grid-item">Skill based arcade competition</div>
-      <div class="grid-item">Clear rules and visible systems</div>
-      <div class="grid-item">Fast sessions, fair outcomes</div>
-      <div class="grid-item">No hype driven mechanics</div>
+    <div class="cta">
+      <a class="btn" href="YOUR_DISCORD_INVITE_LINK" target="_blank" rel="noopener noreferrer">
+        Enter Discord
+      </a>
+      <a class="btn" href="mailto:playarcpivot@hotmail.com">
+        Contact
+      </a>
+    </div>
+
+    <div class="footer">
+      ArcPivot communicates based on real development progress.<br />
+      Features may change before release.
     </div>
   </div>
 
-  <div class="terminal">
-    <h3>What ArcPivot is not</h3>
-    <div class="grid">
-      <div class="grid-item">Not a casino</div>
-      <div class="grid-item">Not pay to win</div>
-      <div class="grid-item">Not a profit promise</div>
-      <div class="grid-item">Not built on noise</div>
-    </div>
-  </div>
-
-  <div class="cta">
-    <a href="#" class="btn">Enter Discord</a>
-    <a href="#" class="btn">Follow Updates</a>
-  </div>
-
-  <div class="footer">
-    ArcPivot communicates based on real development progress.  
-    Features may change before release.
-  </div>
-
-</div>
-
-<script>
-  const text = `ArcPivot system booting…
+  <script>
+    const text = `ArcPivot system booting…
 
 Skill decides outcomes.
 Rules stay visible.
@@ -224,59 +279,60 @@ built for clarity and control.
 
 Status: in development.`;
 
-  let i = 0;
-  const el = document.getElementById("typewriter");
+    let i = 0;
+    const el = document.getElementById("typewriter");
 
-  function type() {
-    if (i < text.length) {
-      el.innerHTML += text.charAt(i);
-      i++;
-      setTimeout(type, 18);
-    }
-  }
-
-  type();
-
-  const canvas = document.getElementById("matrix");
-  const ctx = canvas.getContext("2d");
-
-  function resize() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-  }
-
-  const chars = "01▌▐░▒▓";
-  const fontSize = 14;
-  let columns;
-  let drops = [];
-
-  function initMatrix() {
-    resize();
-    columns = Math.floor(canvas.width / fontSize);
-    drops = Array(columns).fill(1);
-  }
-
-  function drawMatrix() {
-    ctx.fillStyle = "rgba(11,15,20,0.08)";
-    ctx.fillRect(0,0,canvas.width,canvas.height);
-
-    ctx.fillStyle = "#f5a524";
-    ctx.font = fontSize + "px monospace";
-
-    for (let i = 0; i < drops.length; i++) {
-      const char = chars[Math.floor(Math.random()*chars.length)];
-      ctx.fillText(char, i*fontSize, drops[i]*fontSize);
-      if (drops[i]*fontSize > canvas.height && Math.random() > 0.975) {
-        drops[i] = 0;
+    function type() {
+      if (i < text.length) {
+        el.innerHTML += text.charAt(i);
+        i++;
+        setTimeout(type, 18);
       }
-      drops[i]++;
     }
-  }
 
-  window.addEventListener("resize", initMatrix);
-  initMatrix();
-  setInterval(drawMatrix, 50);
-</script>
+    type();
 
+    const canvas = document.getElementById("matrix");
+    const ctx = canvas.getContext("2d");
+
+    function resize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    const chars = "01▌▐░▒▓";
+    const fontSize = 14;
+    let columns;
+    let drops = [];
+
+    function initMatrix() {
+      resize();
+      columns = Math.floor(canvas.width / fontSize);
+      drops = Array(columns).fill(1);
+    }
+
+    function drawMatrix() {
+      ctx.fillStyle = "rgba(11,15,20,0.08)";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = "#f5a524";
+      ctx.font = fontSize + "px monospace";
+
+      for (let i = 0; i < drops.length; i++) {
+        const char = chars[Math.floor(Math.random() * chars.length)];
+        ctx.fillText(char, i * fontSize, drops[i] * fontSize);
+
+        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+          drops[i] = 0;
+        }
+
+        drops[i]++;
+      }
+    }
+
+    window.addEventListener("resize", initMatrix);
+    initMatrix();
+    setInterval(drawMatrix, 50);
+  </script>
 </body>
 </html>
