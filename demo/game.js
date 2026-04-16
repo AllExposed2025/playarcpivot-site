@@ -466,7 +466,7 @@ function createCore() {
 function createHelpText() {
   const scene = sceneRef;
 
-  scene.add.text(ARENA_CENTER_X, 590, 'GAMEPLAY POLISH PASS 1 // CLEAN HOTFIX BUILD', {
+  scene.add.text(ARENA_CENTER_X, 590, 'BLOCK 18 BASE // RESPONSIVE + GAMEPLAY LOCKED', {
     fontFamily: 'Courier New',
     fontSize: '14px',
     color: '#f5f7fa'
@@ -680,7 +680,6 @@ function resolveShieldCollision(fighter) {
 
   core.x = shieldX + direction * (SHIELD_WIDTH / 2 + CORE_RADIUS + 1);
 
-  // Afgerondere shield-reactie
   const relativeY = Phaser.Math.Clamp(
     (core.y - fighter.container.y) / (SHIELD_HEIGHT / 2),
     -1,
@@ -693,7 +692,6 @@ function resolveShieldCollision(fighter) {
 
   const targetVY = curvedResponse * Math.max(Math.abs(coreVelocityX) * 0.88, 170);
 
-  // zachtere blend zodat top/bottom niet zo hoekig reageren
   coreVelocityY = Phaser.Math.Linear(coreVelocityY, targetVY, 0.75);
 
   fighterHitCooldown = 70;
@@ -788,7 +786,6 @@ function handleGoalPostCollisions() {
         core.x = post.x + nx * (CORE_RADIUS + POST_RADIUS + 2);
         core.y = post.y + ny * (CORE_RADIUS + POST_RADIUS + 2);
 
-        // Extra nudge weg van de achterlijn om dead-points te voorkomen
         if (post.x === ARENA_LEFT) {
           core.x = Math.max(core.x, ARENA_LEFT + POST_RADIUS + CORE_RADIUS + 3);
           coreVelocityX = Math.max(Math.abs(coreVelocityX), MIN_HORIZONTAL_SPEED);
@@ -837,23 +834,16 @@ function onGoalPostHit(post) {
 }
 
 function bounceFromBackWall(directionAwayFromWall) {
-  // +1 = weg van linker achterlijn naar rechts
-  // -1 = weg van rechter achterlijn naar links
-
   const absVX = Math.max(Math.abs(coreVelocityX), MIN_HORIZONTAL_SPEED);
   const maxAbsVY = absVX * MAX_VERTICAL_RATIO;
 
   coreVelocityX = absVX * directionAwayFromWall;
-
-  // Verticale component begrenzen
   coreVelocityY = Phaser.Math.Clamp(coreVelocityY, -maxAbsVY * 0.8, maxAbsVY * 0.8);
 
-  // Nooit bijna volledig verticaal
   if (Math.abs(coreVelocityY) > Math.abs(coreVelocityX) * 0.9) {
     coreVelocityY = Math.sign(coreVelocityY || 1) * Math.abs(coreVelocityX) * 0.7;
   }
 
-  // Klein beetje demping zodat het minder plakkerig voelt
   coreVelocityY *= 0.95;
 }
 
@@ -906,7 +896,6 @@ function scoreGoal(side) {
 function animateCoreIntoNet(side, comboData) {
   playGoalSound();
 
-  // side = scorer
   const scoringOnRightGoal = side === 'left';
 
   const lineEntryX = scoringOnRightGoal ? ARENA_RIGHT - 3 : ARENA_LEFT + 3;
@@ -916,7 +905,6 @@ function animateCoreIntoNet(side, comboData) {
 
   const startY = Phaser.Math.Clamp(core.y, GOAL_TOP + 12, GOAL_BOTTOM - 12);
 
-  // Minder stijve goal-entry: lichte net-curve
   const incomingBias = Phaser.Math.Clamp(coreVelocityY * 0.06, -16, 16);
   const midNetY = Phaser.Math.Clamp(startY + incomingBias, GOAL_TOP + 12, GOAL_BOTTOM - 12);
   const finalNetY = Phaser.Math.Clamp(midNetY + (incomingBias * 0.4), GOAL_TOP + 12, GOAL_BOTTOM - 12);
@@ -1297,7 +1285,6 @@ function applyTrajectoryConstraints(preferredXDirection = null) {
   coreVelocityX = absVX * xDir;
   coreVelocityY = Phaser.Math.Clamp(coreVelocityY, -maxAbsVY, maxAbsVY);
 
-  // Extra beveiliging tegen bijna verticale lijnen
   if (Math.abs(coreVelocityY) > Math.abs(coreVelocityX) * 0.96) {
     coreVelocityY = Math.sign(coreVelocityY || 1) * Math.abs(coreVelocityX) * 0.82;
   }
