@@ -137,17 +137,25 @@ function update(time, delta) {
 function drawArena() {
   const scene = sceneRef;
 
+  // Achtergrond
   scene.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x0b0f14);
 
+  // Titel
   scene.add.text(ARENA_CENTER_X, 26, 'ARCPIVOT RUSH DUEL', {
     fontFamily: 'Courier New',
     fontSize: '18px',
     color: '#f5a524'
   }).setOrigin(0.5);
 
-  drawFieldSurface(scene);
-  drawFieldLines(scene);
+  // Neutrale premium vloer
+  drawNeutralArenaSurface(scene);
 
+  // Buitenrand arena
+  const border = scene.add.graphics();
+  border.lineStyle(2, 0xf5a524, 0.6);
+  border.strokeRect(ARENA_LEFT, ARENA_TOP, ARENA_RIGHT - ARENA_LEFT, ARENA_BOTTOM - ARENA_TOP);
+
+  // Glow rand
   arenaGlow = scene.add.rectangle(
     ARENA_CENTER_X,
     ARENA_CENTER_Y,
@@ -158,120 +166,51 @@ function drawArena() {
   );
   arenaGlow.setStrokeStyle(2, 0xf5a524, 0.25);
 
+  // Middenlijn clean
+  const middle = scene.add.graphics();
+  middle.lineStyle(2, 0xf5a524, 0.22);
+  middle.lineBetween(ARENA_CENTER_X, ARENA_TOP + 12, ARENA_CENTER_X, ARENA_BOTTOM - 12);
+
+  // Subtiele middenring
+  const centerRing = scene.add.graphics();
+  centerRing.lineStyle(2, 0xf5a524, 0.12);
+  centerRing.strokeCircle(ARENA_CENTER_X, ARENA_CENTER_Y, 42);
+
+  // Hoekaccenten
   drawCornerAccent(scene, ARENA_LEFT + 14, ARENA_TOP + 14, 'tl');
   drawCornerAccent(scene, ARENA_RIGHT - 14, ARENA_TOP + 14, 'tr');
   drawCornerAccent(scene, ARENA_LEFT + 14, ARENA_BOTTOM - 14, 'bl');
   drawCornerAccent(scene, ARENA_RIGHT - 14, ARENA_BOTTOM - 14, 'br');
 
+  // Schermflash
   screenFlash = scene.add.rectangle(ARENA_CENTER_X, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0xf5a524, 0);
   screenFlash.setDepth(900);
 }
 
-function drawFieldSurface(scene) {
-  const fieldWidth = ARENA_RIGHT - ARENA_LEFT;
-  const fieldHeight = ARENA_BOTTOM - ARENA_TOP;
-  const stripeCount = 10;
-  const stripeWidth = fieldWidth / stripeCount;
+function drawNeutralArenaSurface(scene) {
+  const width = ARENA_RIGHT - ARENA_LEFT;
+  const height = ARENA_BOTTOM - ARENA_TOP;
 
-  // Basis groen veld
-  scene.add.rectangle(ARENA_CENTER_X, ARENA_CENTER_Y, fieldWidth, fieldHeight, 0x2d7a24, 1);
+  // Basisvloer
+  scene.add.rectangle(ARENA_CENTER_X, ARENA_CENTER_Y, width, height, 0x111821, 1);
 
-  for (let i = 0; i < stripeCount; i++) {
-    const color = i % 2 === 0 ? 0x2f8b24 : 0x3a972d;
-    const x = ARENA_LEFT + stripeWidth * i + stripeWidth / 2;
-    scene.add.rectangle(x, ARENA_CENTER_Y, stripeWidth, fieldHeight, color, 0.92);
+  // Subtiele horizontale gelaagdheid
+  scene.add.rectangle(ARENA_CENTER_X, ARENA_CENTER_Y - 120, width, 80, 0x131c27, 0.85);
+  scene.add.rectangle(ARENA_CENTER_X, ARENA_CENTER_Y, width, 120, 0x101720, 0.7);
+  scene.add.rectangle(ARENA_CENTER_X, ARENA_CENTER_Y + 130, width, 90, 0x151e2a, 0.75);
+
+  // Lichtbanden
+  scene.add.rectangle(ARENA_CENTER_X, ARENA_CENTER_Y - 165, width - 40, 2, 0xf5a524, 0.08);
+  scene.add.rectangle(ARENA_CENTER_X, ARENA_CENTER_Y + 165, width - 40, 2, 0xf5a524, 0.08);
+
+  // Verticale subtiele lanes
+  for (let i = 0; i < 6; i++) {
+    const x = ARENA_LEFT + 100 + i * 130;
+    scene.add.rectangle(x, ARENA_CENTER_Y, 2, height - 40, 0xf5f7fa, 0.02);
   }
 
-  // Zachte vignette
-  scene.add.rectangle(ARENA_CENTER_X, ARENA_CENTER_Y, fieldWidth, fieldHeight, 0x000000, 0.08);
-}
-
-function drawFieldLines(scene) {
-  const g = scene.add.graphics();
-  g.lineStyle(2, 0xf5f7fa, 0.75);
-
-  // Boven- en onderlijn
-  g.lineBetween(ARENA_LEFT, ARENA_TOP, ARENA_RIGHT, ARENA_TOP);
-  g.lineBetween(ARENA_LEFT, ARENA_BOTTOM, ARENA_RIGHT, ARENA_BOTTOM);
-
-  // Linker en rechter achterlijn, met ruimte voor palen
-  drawGoalLineWithPostGaps(g, ARENA_LEFT);
-  drawGoalLineWithPostGaps(g, ARENA_RIGHT);
-
-  // Middenlijn
-  g.lineBetween(ARENA_CENTER_X, ARENA_TOP, ARENA_CENTER_X, ARENA_BOTTOM);
-
-  // Middencirkel
-  g.strokeCircle(ARENA_CENTER_X, ARENA_CENTER_Y, 52);
-  g.fillStyle(0xf5f7fa, 0.85);
-  g.fillCircle(ARENA_CENTER_X, ARENA_CENTER_Y, 2);
-
-  // Strafschopgebieden
-  drawPenaltyBoxLeft(g);
-  drawPenaltyBoxRight(g);
-
-  // Kleine doelgebieden
-  drawGoalBoxLeft(g);
-  drawGoalBoxRight(g);
-}
-
-function drawGoalLineWithPostGaps(g, x) {
-  // Segment boven eerste paal
-  g.lineBetween(x, ARENA_TOP, x, GOAL_TOP - POST_RADIUS);
-
-  // Segment tussen de palen
-  g.lineBetween(x, GOAL_TOP + POST_RADIUS, x, GOAL_BOTTOM - POST_RADIUS);
-
-  // Segment onder tweede paal
-  g.lineBetween(x, GOAL_BOTTOM + POST_RADIUS, x, ARENA_BOTTOM);
-}
-
-function drawPenaltyBoxLeft(g) {
-  const boxDepth = 84;
-  const boxHeight = 220;
-  const top = ARENA_CENTER_Y - boxHeight / 2;
-  const bottom = ARENA_CENTER_Y + boxHeight / 2;
-
-  g.lineBetween(ARENA_LEFT, top, ARENA_LEFT + boxDepth, top);
-  g.lineBetween(ARENA_LEFT + boxDepth, top, ARENA_LEFT + boxDepth, bottom);
-  g.lineBetween(ARENA_LEFT + boxDepth, bottom, ARENA_LEFT, bottom);
-
-  g.strokeCircle(ARENA_LEFT + 58, ARENA_CENTER_Y, 34);
-}
-
-function drawPenaltyBoxRight(g) {
-  const boxDepth = 84;
-  const boxHeight = 220;
-  const top = ARENA_CENTER_Y - boxHeight / 2;
-  const bottom = ARENA_CENTER_Y + boxHeight / 2;
-
-  g.lineBetween(ARENA_RIGHT, top, ARENA_RIGHT - boxDepth, top);
-  g.lineBetween(ARENA_RIGHT - boxDepth, top, ARENA_RIGHT - boxDepth, bottom);
-  g.lineBetween(ARENA_RIGHT - boxDepth, bottom, ARENA_RIGHT, bottom);
-
-  g.strokeCircle(ARENA_RIGHT - 58, ARENA_CENTER_Y, 34);
-}
-
-function drawGoalBoxLeft(g) {
-  const boxDepth = 34;
-  const boxHeight = 100;
-  const top = ARENA_CENTER_Y - boxHeight / 2;
-  const bottom = ARENA_CENTER_Y + boxHeight / 2;
-
-  g.lineBetween(ARENA_LEFT, top, ARENA_LEFT + boxDepth, top);
-  g.lineBetween(ARENA_LEFT + boxDepth, top, ARENA_LEFT + boxDepth, bottom);
-  g.lineBetween(ARENA_LEFT + boxDepth, bottom, ARENA_LEFT, bottom);
-}
-
-function drawGoalBoxRight(g) {
-  const boxDepth = 34;
-  const boxHeight = 100;
-  const top = ARENA_CENTER_Y - boxHeight / 2;
-  const bottom = ARENA_CENTER_Y + boxHeight / 2;
-
-  g.lineBetween(ARENA_RIGHT, top, ARENA_RIGHT - boxDepth, top);
-  g.lineBetween(ARENA_RIGHT - boxDepth, top, ARENA_RIGHT - boxDepth, bottom);
-  g.lineBetween(ARENA_RIGHT - boxDepth, bottom, ARENA_RIGHT, bottom);
+  // Vignette / diepte
+  scene.add.rectangle(ARENA_CENTER_X, ARENA_CENTER_Y, width, height, 0x000000, 0.08);
 }
 
 function drawCornerAccent(scene, x, y, corner) {
@@ -344,14 +283,13 @@ function createGoalsAndPosts() {
   drawGoalNet(scene, 'left');
   drawGoalNet(scene, 'right');
 
-  // Doelglow links
+  // Doelmodules
   const leftGoalFrame = scene.add.graphics();
-  leftGoalFrame.lineStyle(1, 0xf5a524, 0.5);
+  leftGoalFrame.lineStyle(1, 0xf5a524, 0.45);
   leftGoalFrame.strokeRect(ARENA_LEFT - NET_DEPTH, GOAL_TOP, NET_DEPTH, GOAL_HEIGHT);
 
-  // Doelglow rechts
   const rightGoalFrame = scene.add.graphics();
-  rightGoalFrame.lineStyle(1, 0xf5a524, 0.5);
+  rightGoalFrame.lineStyle(1, 0xf5a524, 0.45);
   rightGoalFrame.strokeRect(ARENA_RIGHT, GOAL_TOP, NET_DEPTH, GOAL_HEIGHT);
 
   leftGoalFlash = scene.add.rectangle(
@@ -379,6 +317,28 @@ function createGoalsAndPosts() {
     createGoalPost(ARENA_RIGHT, GOAL_TOP),
     createGoalPost(ARENA_RIGHT, GOAL_BOTTOM)
   ];
+
+  // Achterlijnen met gaten rondom palen
+  drawGoalLineWithPostGaps();
+}
+
+function drawGoalLineWithPostGaps() {
+  const g = sceneRef.add.graphics();
+  g.lineStyle(2, 0xf5f7fa, 0.72);
+
+  // Linkerkant
+  g.lineBetween(ARENA_LEFT, ARENA_TOP, ARENA_LEFT, GOAL_TOP - POST_RADIUS);
+  g.lineBetween(ARENA_LEFT, GOAL_TOP + POST_RADIUS, ARENA_LEFT, GOAL_BOTTOM - POST_RADIUS);
+  g.lineBetween(ARENA_LEFT, GOAL_BOTTOM + POST_RADIUS, ARENA_LEFT, ARENA_BOTTOM);
+
+  // Rechterkant
+  g.lineBetween(ARENA_RIGHT, ARENA_TOP, ARENA_RIGHT, GOAL_TOP - POST_RADIUS);
+  g.lineBetween(ARENA_RIGHT, GOAL_TOP + POST_RADIUS, ARENA_RIGHT, GOAL_BOTTOM - POST_RADIUS);
+  g.lineBetween(ARENA_RIGHT, GOAL_BOTTOM + POST_RADIUS, ARENA_RIGHT, ARENA_BOTTOM);
+
+  // Boven- en onderlijn
+  g.lineBetween(ARENA_LEFT, ARENA_TOP, ARENA_RIGHT, ARENA_TOP);
+  g.lineBetween(ARENA_LEFT, ARENA_BOTTOM, ARENA_RIGHT, ARENA_BOTTOM);
 }
 
 function drawGoalNet(scene, side) {
@@ -388,26 +348,20 @@ function drawGoalNet(scene, side) {
   const startX = side === 'left' ? ARENA_LEFT - NET_DEPTH : ARENA_RIGHT;
   const endX = side === 'left' ? ARENA_LEFT : ARENA_RIGHT + NET_DEPTH;
 
-  // Buitenframe net
   g.strokeRect(startX, GOAL_TOP, NET_DEPTH, GOAL_HEIGHT);
 
-  // Verticale netlijnen
   for (let i = 1; i < 5; i++) {
     const t = i / 5;
     const x = startX + (endX - startX) * t;
     g.lineBetween(x, GOAL_TOP, x, GOAL_BOTTOM);
   }
 
-  // Horizontale netlijnen
   for (let i = 1; i < 7; i++) {
     const y = GOAL_TOP + (GOAL_HEIGHT / 7) * i;
     g.lineBetween(startX, y, endX, y);
   }
 
-  // Schaduw/volume
-  const shadowColor = side === 'left' ? 0x000000 : 0x000000;
-  const shadowAlpha = 0.08;
-  scene.add.rectangle(startX + NET_DEPTH / 2, ARENA_CENTER_Y, NET_DEPTH, GOAL_HEIGHT, shadowColor, shadowAlpha);
+  scene.add.rectangle(startX + NET_DEPTH / 2, ARENA_CENTER_Y, NET_DEPTH, GOAL_HEIGHT, 0x000000, 0.05);
 }
 
 function createGoalPost(x, y) {
@@ -495,7 +449,7 @@ function createCore() {
 function createHelpText() {
   const scene = sceneRef;
 
-  scene.add.text(ARENA_CENTER_X, 590, 'GOAL NET + FIELD THEME ACTIVE // GOAL SOUND READY', {
+  scene.add.text(ARENA_CENTER_X, 590, 'CLEAN BASE ACTIVE // POSTS, NET, FIGHTERS, COMBOS INTACT', {
     fontFamily: 'Courier New',
     fontSize: '14px',
     color: '#f5f7fa'
@@ -879,7 +833,10 @@ function scoreGoal(side) {
 function animateCoreIntoNet(side, comboData) {
   playGoalSound();
 
-  const targetX = side === 'left' ? ARENA_RIGHT + (NET_DEPTH / 2) : ARENA_LEFT - (NET_DEPTH / 2);
+  const targetX = side === 'left'
+    ? ARENA_RIGHT + (NET_DEPTH / 2)
+    : ARENA_LEFT - (NET_DEPTH / 2);
+
   const targetY = Phaser.Math.Clamp(core.y, GOAL_TOP + 10, GOAL_BOTTOM - 10);
 
   sceneRef.tweens.add({
