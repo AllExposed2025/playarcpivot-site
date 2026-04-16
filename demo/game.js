@@ -9,7 +9,7 @@ const ARENA_BOTTOM = 600;
 const ARENA_CENTER_X = (ARENA_LEFT + ARENA_RIGHT) / 2;
 const ARENA_CENTER_Y = (ARENA_TOP + ARENA_BOTTOM) / 2;
 
-const UNIT_SPEED = 360;
+const UNIT_SPEED = 396;
 
 const SHIELD_WIDTH = 16;
 const SHIELD_HEIGHT = 120;
@@ -19,6 +19,10 @@ const BODY_RADIUS = 18;
 const CORE_RADIUS = 12;
 const START_CORE_SPEED_X = 320;
 const START_CORE_SPEED_Y = 180;
+
+// Gameplay feel tuning
+const MIN_HORIZONTAL_SPEED = 286;
+const MAX_VERTICAL_RATIO = 1.15;
 
 const GOAL_WIDTH = 14;
 const GOAL_HEIGHT = 150;
@@ -449,7 +453,7 @@ function createCore() {
 function createHelpText() {
   const scene = sceneRef;
 
-  scene.add.text(ARENA_CENTER_X, 590, 'CLEAN BASE ACTIVE // POSTS, NET, FIGHTERS, COMBOS INTACT', {
+  scene.add.text(ARENA_CENTER_X, 590, 'GAMEPLAY POLISH PASS 1 // CLEAN HOTFIX BUILD', {
     fontFamily: 'Courier New',
     fontSize: '14px',
     color: '#f5f7fa'
@@ -615,12 +619,14 @@ function moveCore(dt) {
   if (core.y - CORE_RADIUS <= ARENA_TOP) {
     core.y = ARENA_TOP + CORE_RADIUS;
     coreVelocityY *= -1;
+    applyTrajectoryConstraints();
     syncCoreVisuals();
   }
 
   if (core.y + CORE_RADIUS >= ARENA_BOTTOM) {
     core.y = ARENA_BOTTOM - CORE_RADIUS;
     coreVelocityY *= -1;
+    applyTrajectoryConstraints();
     syncCoreVisuals();
   }
 
@@ -660,11 +666,26 @@ function resolveShieldCollision(fighter) {
   const direction = core.x >= shieldX ? 1 : -1;
 
   core.x = shieldX + direction * (SHIELD_WIDTH / 2 + CORE_RADIUS + 1);
-  coreVelocityX = Math.abs(coreVelocityX) * direction * 1.03;
-  coreVelocityY += (core.y - fighter.container.y) * 4.2;
+
+  // Afgerondere shield-reactie
+  const relativeY = Phaser.Math.Clamp(
+    (core.y - fighter.container.y) / (SHIELD_HEIGHT / 2),
+    -1,
+    1
+  );
+
+  const curvedResponse = Math.sin(relativeY * (Math.PI / 2));
+
+  coreVelocityX = Math.max(Math.abs(coreVelocityX), MIN_HORIZONTAL_SPEED) * direction * 1.03;
+
+  const targetVY = curvedResponse * Math.max(Math.abs(coreVelocityX) * 0.88, 170);
+
+  // zachtere blend zodat top/bottom niet zo hoekig reageren
+  coreVelocityY = Phaser.Math.Linear(coreVelocityY, targetVY, 0.75);
 
   fighterHitCooldown = 70;
 
+  applyTrajectoryConstraints(direction);
   onShieldHit(fighter);
   onCoreHit();
   syncCoreVisuals();
@@ -716,6 +737,7 @@ function resolveBodyCollision(fighter) {
 
   fighterHitCooldown = 70;
 
+  applyTrajectoryConstraints();
   onBodyHit(fighter);
   onCoreHit();
   syncCoreVisuals();
@@ -729,11 +751,16 @@ function handleGoalPostCollisions() {
   for (let i = 0; i < goalPosts.length; i++) {
     const post = goalPosts[i];
 
-    const dx = core.x - post.x;
-    const dy = core.y - post.y;
-    const distance = Math.sqrt(dx * dx + dy * dy);
+    let dx = core.x - post.x;
+    let dy = core.y - post.y;
+    let distance = Math.sqrt(dx * dx + dy * dy);
 
     if (distance <= CORE_RADIUS + POST_RADIUS) {
+      if (distance === 0) {
+        distance = 0.001;
+        dx = 0.001;
+      }
+
       const nx = dx / distance;
       const ny = dy / distance;
       const dot = coreVelocityX * nx + coreVelocityY * ny;
@@ -745,14 +772,26 @@ function handleGoalPostCollisions() {
         coreVelocityX *= 1.02;
         coreVelocityY *= 1.02;
 
-        core.x = post.x + nx * (CORE_RADIUS + POST_RADIUS + 1);
-        core.y = post.y + ny * (CORE_RADIUS + POST_RADIUS + 1);
+        core.x = post.x + nx * (CORE_RADIUS + POST_RADIUS + 2);
+        core.y = post.y + ny * (CORE_RADIUS + POST_RADIUS + 2);
 
+        // Extra nudge weg van de achterlijn om dead-points te voorkomen
+        if (post.x === ARENA_LEFT) {
+          core.x = Math.max(core.x, ARENA_LEFT + POST_RADIUS + CORE_RADIUS + 3);
+          coreVelocityX = Math.max(Math.abs(coreVelocityX), MIN_HORIZONTAL_SPEED);
+        }
+
+        if (post.x === ARENA_RIGHT) {
+          core.x = Math.min(core.x, ARENA_RIGHT - POST_RADIUS - CORE_RADIUS - 3);
+          coreVelocityX = -Math.max(Math.abs(coreVelocityX), MIN_HORIZONTAL_SPEED);
+        }
+
+        postHitCooldown = 90;
+
+        applyTrajectoryConstraints();
         syncCoreVisuals();
         onCoreHit();
         onGoalPostHit(post);
-
-        postHitCooldown = 80;
         break;
       }
     }
@@ -784,6 +823,27 @@ function onGoalPostHit(post) {
   });
 }
 
+function bounceFromBackWall(directionAwayFromWall) {
+  // +1 = weg van linker achterlijn naar rechts
+  // -1 = weg van rechter achterlijn naar links
+
+  const absVX = Math.max(Math.abs(coreVelocityX), MIN_HORIZONTAL_SPEED);
+  const maxAbsVY = absVX * MAX_VERTICAL_RATIO;
+
+  coreVelocityX = absVX * directionAwayFromWall;
+
+  // Verticale component begrenzen
+  coreVelocityY = Phaser.Math.Clamp(coreVelocityY, -maxAbsVY * 0.8, maxAbsVY * 0.8);
+
+  // Nooit bijna volledig verticaal
+  if (Math.abs(coreVelocityY) > Math.abs(coreVelocityX) * 0.9) {
+    coreVelocityY = Math.sign(coreVelocityY || 1) * Math.abs(coreVelocityX) * 0.7;
+  }
+
+  // Klein beetje demping zodat het minder plakkerig voelt
+  coreVelocityY *= 0.95;
+}
+
 function handleLeftBackWall() {
   const inGoalWindow = core.y >= GOAL_TOP && core.y <= GOAL_BOTTOM;
 
@@ -791,8 +851,8 @@ function handleLeftBackWall() {
     if (inGoalWindow) {
       scoreGoal('right');
     } else {
-      core.x = ARENA_LEFT + CORE_RADIUS;
-      coreVelocityX = Math.abs(coreVelocityX);
+      core.x = ARENA_LEFT + CORE_RADIUS + 2;
+      bounceFromBackWall(1);
       syncCoreVisuals();
     }
   }
@@ -805,8 +865,8 @@ function handleRightBackWall() {
     if (inGoalWindow) {
       scoreGoal('left');
     } else {
-      core.x = ARENA_RIGHT - CORE_RADIUS;
-      coreVelocityX = -Math.abs(coreVelocityX);
+      core.x = ARENA_RIGHT - CORE_RADIUS - 2;
+      bounceFromBackWall(-1);
       syncCoreVisuals();
     }
   }
@@ -833,37 +893,70 @@ function scoreGoal(side) {
 function animateCoreIntoNet(side, comboData) {
   playGoalSound();
 
-  const targetX = side === 'left'
+  // side = scorer
+  const scoringOnRightGoal = side === 'left';
+
+  const lineEntryX = scoringOnRightGoal ? ARENA_RIGHT - 3 : ARENA_LEFT + 3;
+  const finalNetX = scoringOnRightGoal
     ? ARENA_RIGHT + (NET_DEPTH / 2)
     : ARENA_LEFT - (NET_DEPTH / 2);
 
-  const targetY = Phaser.Math.Clamp(core.y, GOAL_TOP + 10, GOAL_BOTTOM - 10);
+  const startY = Phaser.Math.Clamp(core.y, GOAL_TOP + 12, GOAL_BOTTOM - 12);
+
+  // Minder stijve goal-entry: lichte net-curve
+  const incomingBias = Phaser.Math.Clamp(coreVelocityY * 0.06, -16, 16);
+  const midNetY = Phaser.Math.Clamp(startY + incomingBias, GOAL_TOP + 12, GOAL_BOTTOM - 12);
+  const finalNetY = Phaser.Math.Clamp(midNetY + (incomingBias * 0.4), GOAL_TOP + 12, GOAL_BOTTOM - 12);
 
   sceneRef.tweens.add({
     targets: [core, coreGlow, coreInner],
-    x: targetX,
-    y: targetY,
-    duration: 180,
-    ease: 'Quad.easeOut',
+    x: lineEntryX,
+    y: startY,
+    duration: 80,
+    ease: 'Sine.easeOut',
     onUpdate: () => {
       syncCoreVisuals();
     },
     onComplete: () => {
-      playGoalEffect(side);
+      sceneRef.tweens.add({
+        targets: [core, coreGlow, coreInner],
+        x: finalNetX,
+        y: midNetY,
+        duration: 90,
+        ease: 'Quad.easeIn',
+        onUpdate: () => {
+          syncCoreVisuals();
+        },
+        onComplete: () => {
+          sceneRef.tweens.add({
+            targets: [core, coreGlow, coreInner],
+            x: finalNetX + (scoringOnRightGoal ? 5 : -5),
+            y: finalNetY,
+            duration: 70,
+            ease: 'Sine.easeOut',
+            onUpdate: () => {
+              syncCoreVisuals();
+            },
+            onComplete: () => {
+              playGoalEffect(side);
 
-      if (side === 'left') {
-        showHeroGoalOverlay('PLAYER ONE SCORES', 'NET FINISH // ARC BREAK', 'PLAYER ONE', comboData.displayText);
-      } else {
-        showHeroGoalOverlay('PLAYER TWO SCORES', 'NET FINISH // ARC BREAK', 'PLAYER TWO', comboData.displayText);
-      }
+              if (side === 'left') {
+                showHeroGoalOverlay('PLAYER ONE SCORES', 'NET FINISH // ARC BREAK', 'PLAYER ONE', comboData.displayText);
+              } else {
+                showHeroGoalOverlay('PLAYER TWO SCORES', 'NET FINISH // ARC BREAK', 'PLAYER TWO', comboData.displayText);
+              }
 
-      sceneRef.time.delayedCall(1250, () => {
-        hideHeroGoalOverlay();
-        resetCore(false);
-        core.setVisible(true);
-        coreGlow.setVisible(true);
-        coreInner.setVisible(true);
-        roundPaused = false;
+              sceneRef.time.delayedCall(1250, () => {
+                hideHeroGoalOverlay();
+                resetCore(false);
+                core.setVisible(true);
+                coreGlow.setVisible(true);
+                coreInner.setVisible(true);
+                roundPaused = false;
+              });
+            }
+          });
+        }
       });
     }
   });
@@ -1175,6 +1268,28 @@ function syncCoreVisuals() {
   coreInner.y = core.y;
 }
 
+// Houdt rally's sneller en minder zigzaggend
+function applyTrajectoryConstraints(preferredXDirection = null) {
+  let xDir;
+
+  if (preferredXDirection === null) {
+    xDir = Math.sign(coreVelocityX) || 1;
+  } else {
+    xDir = preferredXDirection > 0 ? 1 : -1;
+  }
+
+  const absVX = Math.max(Math.abs(coreVelocityX), MIN_HORIZONTAL_SPEED);
+  const maxAbsVY = absVX * MAX_VERTICAL_RATIO;
+
+  coreVelocityX = absVX * xDir;
+  coreVelocityY = Phaser.Math.Clamp(coreVelocityY, -maxAbsVY, maxAbsVY);
+
+  // Extra beveiliging tegen bijna verticale lijnen
+  if (Math.abs(coreVelocityY) > Math.abs(coreVelocityX) * 0.96) {
+    coreVelocityY = Math.sign(coreVelocityY || 1) * Math.abs(coreVelocityX) * 0.82;
+  }
+}
+
 function resetCore(isFirstStart) {
   core.x = ARENA_CENTER_X;
   core.y = ARENA_CENTER_Y;
@@ -1186,10 +1301,12 @@ function resetCore(isFirstStart) {
   if (isFirstStart) {
     coreVelocityY = START_CORE_SPEED_Y;
   } else {
-    coreVelocityY = Phaser.Math.Between(-220, 220);
+    coreVelocityY = Phaser.Math.Between(-180, 180);
 
-    if (Math.abs(coreVelocityY) < 80) {
-      coreVelocityY = 120 * (Math.random() < 0.5 ? -1 : 1);
+    if (Math.abs(coreVelocityY) < 60) {
+      coreVelocityY = 90 * (Math.random() < 0.5 ? -1 : 1);
     }
   }
+
+  applyTrajectoryConstraints(direction);
 }
