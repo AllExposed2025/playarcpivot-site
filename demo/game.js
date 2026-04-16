@@ -93,6 +93,19 @@ const config = {
   height: GAME_HEIGHT,
   parent: 'game-container',
   backgroundColor: '#0b0f14',
+  scale: {
+    parent: 'game-container',
+    mode: Phaser.Scale.FIT,
+    autoCenter: Phaser.Scale.CENTER_BOTH,
+    min: {
+      width: 768,
+      height: 496
+    },
+    max: {
+      width: 1600,
+      height: 1033
+    }
+  },
   scene: {
     create: create,
     update: update
