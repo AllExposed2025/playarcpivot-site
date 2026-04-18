@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ArcPivot — Match Format</title>
+  <link rel="stylesheet" href="flow.css" />
+  <link rel="stylesheet" href="mode.css" />
+</head>
+<body class="body--mode">
+  <div class="page-shell mode-page-shell">
+    <main class="panel mode-panel">
+      <div class="mode-overlay"></div>
+      <div class="mode-sweep"></div>
+      <div class="mode-pulse"></div>
+
+      <div class="mode-scorebars">
+        <span class="mode-scorebar mode-scorebar--1"></span>
+        <span class="mode-scorebar mode-scorebar--2"></span>
+        <span class="mode-scorebar mode-scorebar--3"></span>
+      </div>
+
+      <div class="mode-shell">
+        <section class="mode-hero">
+          <p class="mode-kicker">CHAMPIONSHIP CHANNEL. FORMAT DECIDES.</p>
+
+          <h1 class="mode-title">MATCH FORMAT</h1>
+
+          <p class="mode-subtitle">
+            Choose the competitive format that defines how the next arena session will unfold.
+          </p>
+
+          <p class="mode-support">
+            Select the format. Enter the arena. Build the matchup.
+          </p>
+        </section>
+
+        <section class="mode-format-grid" aria-label="ArcPivot match format choices">
+          <button class="mode-format-button" type="button" data-mode="arcade">
+            <span class="mode-format-inner">
+              <span class="mode-format-title">ARCADE</span>
+              <span class="mode-format-body">Single-player pressure against AI in a structured competitive arena flow.</span>
+              <span class="mode-format-status">Solo competitive lane</span>
+            </span>
+          </button>
+
+          <button class="mode-format-button" type="button" data-mode="1v1">
+            <span class="mode-format-inner">
+              <span class="mode-format-title">1 VS 1</span>
+              <span class="mode-format-body">Direct competitive duels where timing, control, and execution define every exchange.</span>
+              <span class="mode-format-status">Primary competitive focus</span>
+            </span>
+          </button>
+
+          <button class="mode-format-button" type="button" data-mode="tournaments">
+            <span class="mode-format-inner">
+              <span class="mode-format-title">TOURNAMENTS</span>
+              <span class="mode-format-body">Event-style competitive progression built for bracket pressure and rising stakes.</span>
+              <span class="mode-format-status">Bracket flow in development</span>
+            </span>
+          </button>
+        </section>
+
+        <div class="mode-action-row">
+          <a class="landing-button landing-button-secondary mode-back-button" href="index.html">
+            <span class="landing-button-label">Back</span>
+            <span class="button-signal"></span>
+          </a>
+        </div>
+      </div>
+
+      <div class="mode-broadcast-bar">
+        <div class="mode-live-module">
+          <span class="mode-live-dot"></span>
+          <span class="mode-live-text">LIVE</span>
+        </div>
+
+        <div class="mode-status-module">
+          <span class="mode-status-label">FORMAT SELECT</span>
+          <span class="mode-status-state">READY</span>
+        </div>
+
+        <div class="mode-feed-window" aria-label="ArcPivot match format broadcast updates">
+          <div class="mode-feed-marquee">
+            <div class="mode-feed-track">
+              <span class="mode-feed-tag">FORMAT SIGNAL</span>
+              <span>Competitive format channel active</span>
+              <span class="mode-feed-divider">•</span>
+              <span>Arcade lane online</span>
+              <span class="mode-feed-divider">•</span>
+              <span>Duel channel standing by</span>
+              <span class="mode-feed-divider">•</span>
+              <span>Tournament slot reserved</span>
+              <span class="mode-feed-divider">•</span>
+              <span>Arena preview systems synchronized</span>
+              <span class="mode-feed-divider">•</span>
+            </div>
+
+            <div class="mode-feed-track" aria-hidden="true">
+              <span class="mode-feed-tag">FORMAT SIGNAL</span>
+              <span>Competitive format channel active</span>
+              <span class="mode-feed-divider">•</span>
+              <span>Arcade lane online</span>
+              <span class="mode-feed-divider">•</span>
+              <span>Duel channel standing by</span>
+              <span class="mode-feed-divider">•</span>
+              <span>Tournament slot reserved</span>
+              <span class="mode-feed-divider">•</span>
+              <span>Arena preview systems synchronized</span>
+              <span class="mode-feed-divider">•</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const modeButtons = document.querySelectorAll('.mode-format-button');
+    const backButton = document.querySelector('.mode-back-button');
+
+    modeButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        const selectedMode = button.dataset.mode;
+        sessionStorage.setItem('ap_mode', selectedMode);
+
+        button.classList.remove('is-fired');
+        void button.offsetWidth;
+        button.classList.add('is-fired');
+
+        setTimeout(() => {
+          button.classList.remove('is-fired');
+          window.location.href = 'arena.html';
+        }, 220);
+      });
+    });
+
+    if (backButton) {
+      backButton.addEventListener('click', (event) => {
+        const targetHref = backButton.getAttribute('href');
+
+        if (targetHref) {
+          event.preventDefault();
+        }
+
+        backButton.classList.remove('is-fired');
+        void backButton.offsetWidth;
+        backButton.classList.add('is-fired');
+
+        setTimeout(() => {
+          backButton.classList.remove('is-fired');
+
+          if (targetHref) {
+            window.location.href = targetHref;
+          }
+        }, 220);
+      });
+    }
+  </script>
+</body>
+</html>

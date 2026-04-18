@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ArcPivot — Landing</title>
+  <link rel="stylesheet" href="flow.css" />
+</head>
+<body class="body--landing">
+  <div class="page-shell landing-page-shell">
+    <div class="top-mark">ARCPIVOT</div>
+
+    <main class="panel landing-panel">
+      <div class="landing-overlay"></div>
+      <div class="landing-sweep"></div>
+      <div class="landing-pulse"></div>
+
+      <div class="landing-scorebars">
+        <span class="landing-scorebar landing-scorebar--1"></span>
+        <span class="landing-scorebar landing-scorebar--2"></span>
+        <span class="landing-scorebar landing-scorebar--3"></span>
+      </div>
+
+      <div class="landing-shell">
+<section class="landing-hero">
+  <p class="landing-kicker">GLOBAL ARENA. PRECISION DECIDES.</p>
+
+  <h1 class="landing-title">ARCPIVOT</h1>
+
+  <p class="landing-subtitle">
+    A high-intensity arena game where timing, positioning, and control decide.
+  </p>
+
+  <p class="landing-support">
+    Enter the arena. Read the play. Execute under pressure.
+  </p>
+</section>
+
+<section class="landing-feature-grid">
+  <article class="landing-feature-card">
+    <div class="landing-feature-title">PRECISION-DRIVEN GAMEPLAY</div>
+    <div class="landing-feature-body">
+      Every interaction is tuned for control, timing, and competitive consistency.
+    </div>
+  </article>
+
+  <article class="landing-feature-card">
+    <div class="landing-feature-title">STRUCTURED MATCH FLOW</div>
+    <div class="landing-feature-body">
+      Move from mode select to arena setup and live loadout with clear, performance-first pacing.
+    </div>
+  </article>
+
+  <article class="landing-feature-card">
+    <div class="landing-feature-title">BROADCAST-LEVEL EXPERIENCE</div>
+    <div class="landing-feature-body">
+      Built to feel like a live championship environment from the first second.
+    </div>
+  </article>
+</section>
+
+<div class="landing-action-row">
+
+<a class="landing-button landing-button-primary" href="mode.html">
+  <span class="landing-button-label">Enter Arena</span>
+  <span class="button-signal"></span>
+</a>
+
+
+  <a class="landing-button landing-button-secondary" href="demo/index.html">
+    <span class="landing-button-label">Open Demo</span>
+    <span class="button-signal"></span>
+  </a>
+</div>
+      </div>
+
+<div class="landing-broadcast-bar">
+  <div class="landing-live-module">
+    <span class="landing-live-dot"></span>
+    <span class="landing-live-text">LIVE</span>
+  </div>
+
+  <div class="landing-status-module">
+    <span class="landing-status-label">NEXT MATCH STARTS IN</span>
+    <span class="landing-status-time" id="landing-countdown">02:24</span>
+  </div>
+
+<div class="landing-feed-window" aria-label="ArcPivot live broadcast updates">
+  <div class="landing-feed-marquee">
+    <div class="landing-feed-track">
+      <span class="landing-feed-tag">LIVE SIGNAL</span>
+      <span>Competitive arena channel active</span>
+      <span class="landing-feed-divider">•</span>
+      <span>Precision systems calibrated</span>
+      <span class="landing-feed-divider">•</span>
+      <span>Mode select standing by</span>
+      <span class="landing-feed-divider">•</span>
+      <span>Arena preview systems online</span>
+      <span class="landing-feed-divider">•</span>
+      <span>Loadout chamber ready</span>
+      <span class="landing-feed-divider">•</span>
+      <span>Championship signal stable</span>
+      <span class="landing-feed-divider">•</span>
+    </div>
+
+    <div class="landing-feed-track" aria-hidden="true">
+      <span class="landing-feed-tag">LIVE SIGNAL</span>
+      <span>Competitive arena channel active</span>
+      <span class="landing-feed-divider">•</span>
+      <span>Precision systems calibrated</span>
+      <span class="landing-feed-divider">•</span>
+      <span>Mode select standing by</span>
+      <span class="landing-feed-divider">•</span>
+      <span>Arena preview systems online</span>
+      <span class="landing-feed-divider">•</span>
+      <span>Loadout chamber ready</span>
+      <span class="landing-feed-divider">•</span>
+      <span>Championship signal stable</span>
+      <span class="landing-feed-divider">•</span>
+    </div>
+  </div>
+</div>
+</div>
+    </main>
+  </div>
+
+  <script>
+    const landingButtons = document.querySelectorAll('.landing-button');
+
+    landingButtons.forEach((button) => {
+      button.addEventListener('click', (event) => {
+        const targetHref = button.getAttribute('href');
+
+        if (targetHref) {
+          event.preventDefault();
+        }
+
+        button.classList.remove('is-fired');
+        void button.offsetWidth;
+        button.classList.add('is-fired');
+
+        setTimeout(() => {
+          button.classList.remove('is-fired');
+
+          if (targetHref) {
+            window.location.href = targetHref;
+          }
+        }, 240);
+      });
+
+      button.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          button.click();
+        }
+      });
+    });
+
+    const countdownElement = document.getElementById('landing-countdown');
+    let totalSeconds = 2 * 60 + 24;
+
+    function renderCountdown() {
+      const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
+      const seconds = String(totalSeconds % 60).padStart(2, '0');
+      countdownElement.textContent = `${minutes}:${seconds}`;
+    }
+
+    renderCountdown();
+
+    setInterval(() => {
+      if (totalSeconds > 0) {
+        totalSeconds -= 1;
+      } else {
+        totalSeconds = 2 * 60 + 24;
+      }
+
+      renderCountdown();
+    }, 1000);
+  </script>
+</body>
+</html>
