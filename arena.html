@@ -32,70 +32,65 @@
           </p>
 
           <p class="arena-support">
-            Preview each battleground live, lock your arena, then continue into loadout selection.
+            Hover to preview each battleground. Click to lock your arena. Then continue into loadout selection.
           </p>
         </section>
 
-<section class="arena-meta-row">
-  <div class="summary-box arena-meta-box" id="arena-mode-box">
-    <strong>Mode:</strong> 1 VS 1
-  </div>
+        <section class="arena-stage-stack">
+          <div class="arena-lock-row">
+            <div class="arena-lock-box" id="arena-lock-box">
+              <span class="arena-lock-kicker">Locked Arena</span>
+              <span class="arena-lock-value" id="arena-lock-value">No Arena Locked</span>
+              <span class="arena-lock-trait" id="arena-lock-trait" hidden>Championship</span>
+            </div>
+          </div>
 
-  <div class="summary-box arena-meta-box arena-meta-box--selected" id="arena-selected-box">
-    <span class="arena-meta-selected-kicker">Locked Arena</span>
-    <span class="arena-meta-selected-value">No Arena Locked</span>
-  </div>
+          <section class="arena-selector-zone" aria-label="Arena selector">
+            <div class="arena-selector-rail" id="arena-selector-rail">
+              <button class="arena-button" type="button" data-arena="skyline_ascent">
+                <span class="arena-button-title">Skyline Ascent</span>
+                <span class="arena-button-trait">Open-Air</span>
+                <span class="arena-button-signal"></span>
+              </button>
 
-  <div class="summary-box arena-meta-box" id="arena-trait-box">
-    <strong>Trait:</strong> Championship
-  </div>
-</section>
+              <button class="arena-button" type="button" data-arena="forge_vector">
+                <span class="arena-button-title">Forge Vector</span>
+                <span class="arena-button-trait">Industrial</span>
+                <span class="arena-button-signal"></span>
+              </button>
 
-        <section class="arena-selector-zone" aria-label="Arena selector">
-          <div class="arena-selector-rail" id="arena-selector-rail">
-            <button class="arena-button" type="button" data-arena="skyline_ascent">
-              <span class="arena-button-title">Skyline Ascent</span>
-              <span class="arena-button-trait">Open-Air</span>
-              <span class="arena-button-signal"></span>
-            </button>
+              <button class="arena-button" type="button" data-arena="apex_crucible">
+                <span class="arena-button-title">Apex Crucible</span>
+                <span class="arena-button-trait">Championship</span>
+                <span class="arena-button-signal"></span>
+              </button>
 
-            <button class="arena-button" type="button" data-arena="forge_vector">
-              <span class="arena-button-title">Forge Vector</span>
-              <span class="arena-button-trait">Industrial</span>
-              <span class="arena-button-signal"></span>
-            </button>
+              <button class="arena-button" type="button" data-arena="hydro_reactor_core">
+                <span class="arena-button-title">Hydro Reactor Core</span>
+                <span class="arena-button-trait">Reactive</span>
+                <span class="arena-button-signal"></span>
+              </button>
 
-            <button class="arena-button" type="button" data-arena="apex_crucible">
-              <span class="arena-button-title">Apex Crucible</span>
-              <span class="arena-button-trait">Championship</span>
-              <span class="arena-button-signal"></span>
-            </button>
+              <button class="arena-button" type="button" data-arena="solaris_hall">
+                <span class="arena-button-title">Solaris Hall</span>
+                <span class="arena-button-trait">Ceremonial</span>
+                <span class="arena-button-signal"></span>
+              </button>
+            </div>
+          </section>
 
-            <button class="arena-button" type="button" data-arena="hydro_reactor_core">
-              <span class="arena-button-title">Hydro Reactor Core</span>
-              <span class="arena-button-trait">Reactive</span>
-              <span class="arena-button-signal"></span>
-            </button>
+          <div class="arena-control-lane">
+            <a class="landing-button landing-button-secondary arena-back-button" href="mode.html">
+              <span class="landing-button-label">Back</span>
+              <span class="button-signal"></span>
+            </a>
 
-            <button class="arena-button" type="button" data-arena="solaris_hall">
-              <span class="arena-button-title">Solaris Hall</span>
-              <span class="arena-button-trait">Ceremonial</span>
-              <span class="arena-button-signal"></span>
+            <button class="landing-button landing-button-primary arena-next-button is-disabled" id="arena-next-button" type="button" disabled>
+              <span class="landing-button-label">Next</span>
+              <span class="button-signal"></span>
             </button>
           </div>
         </section>
-
-        <div class="arena-control-lane">
-          <a class="landing-button landing-button-secondary arena-back-button" href="mode.html">
-            <span class="landing-button-label">Back</span>
-            <span class="button-signal"></span>
-          </a>
-
-          <button class="landing-button landing-button-primary arena-next-button is-disabled" id="arena-next-button" type="button" disabled>
-            <span class="landing-button-label">Next</span>
-            <span class="button-signal"></span>
-          </button>
-        </div>
       </div>
 
       <div class="arena-broadcast-bar">
@@ -174,18 +169,17 @@
     const nextButton = document.getElementById('arena-next-button');
     const statusState = document.getElementById('arena-status-state');
 
-    const modeBox = document.getElementById('arena-mode-box');
-const selectedBox = document.getElementById('arena-selected-box');
-const traitBox = document.getElementById('arena-trait-box');
+    const lockValue = document.getElementById('arena-lock-value');
+    const lockTrait = document.getElementById('arena-lock-trait');
 
-    const mode = sessionStorage.getItem('ap_mode') || '1v1';
     let selectedArena = sessionStorage.getItem('ap_arena') || '';
     let previewArena = selectedArena || 'apex_crucible';
 
-    function modeLabel(value) {
-      if (value === 'arcade') return 'ARCADE';
-      if (value === 'tournaments') return 'TOURNAMENTS';
-      return '1 VS 1';
+    function resolveAsset(path) {
+      if (window.location.protocol === 'file:') {
+        return path;
+      }
+      return `/${path.replace(/^\/+/, '')}`;
     }
 
     function setPreview(arenaKey) {
@@ -193,9 +187,7 @@ const traitBox = document.getElementById('arena-trait-box');
       if (!arena) return;
 
       previewArena = arenaKey;
-      previewLayer.style.backgroundImage = `url("${arena.image}")`;
-
-traitBox.innerHTML = `<strong>Trait:</strong> ${arena.trait}`;
+      previewLayer.style.backgroundImage = `url("${resolveAsset(arena.image)}")`;
     }
 
     function setSelected(arenaKey) {
@@ -205,11 +197,10 @@ traitBox.innerHTML = `<strong>Trait:</strong> ${arena.trait}`;
       selectedArena = arenaKey;
       sessionStorage.setItem('ap_arena', arenaKey);
 
-selectedBox.innerHTML = `
-  <span class="arena-meta-selected-kicker">Locked Arena</span>
-  <span class="arena-meta-selected-value">${arena.name}</span>
-`;
-statusState.textContent = 'LOCKED';
+      lockValue.textContent = arena.name;
+      lockTrait.textContent = arena.trait;
+      lockTrait.hidden = false;
+      statusState.textContent = 'LOCKED';
 
       arenaButtons.forEach((button) => {
         button.classList.toggle('is-active', button.dataset.arena === arenaKey);
@@ -240,6 +231,10 @@ statusState.textContent = 'LOCKED';
         restorePreview();
       });
 
+      button.addEventListener('blur', () => {
+        restorePreview();
+      });
+
       button.addEventListener('click', () => {
         button.classList.remove('is-fired');
         void button.offsetWidth;
@@ -255,18 +250,14 @@ statusState.textContent = 'LOCKED';
       window.location.href = 'select.html';
     });
 
-    modeBox.innerHTML = `<strong>Mode:</strong> ${modeLabel(mode)}`;
-
     if (selectedArena && arenas[selectedArena]) {
       setPreview(selectedArena);
       setSelected(selectedArena);
     } else {
-selectedBox.innerHTML = `
-  <span class="arena-meta-selected-kicker">Locked Arena</span>
-  <span class="arena-meta-selected-value">No Arena Locked</span>
-`;
-statusState.textContent = 'PREVIEW';
-restorePreview();
+      lockValue.textContent = 'No Arena Locked';
+      lockTrait.hidden = true;
+      statusState.textContent = 'PREVIEW';
+      restorePreview();
     }
   </script>
 </body>

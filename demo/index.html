@@ -10,6 +10,19 @@
 <body>
   <div id="game-shell">
     <div id="game-title">ARCPIVOT RUSH DUEL</div>
+
+    <div id="ai-controls" aria-label="AI difficulty controls">
+      <div class="ai-controls-label">AI Opponent</div>
+
+      <div class="ai-controls-buttons">
+        <button class="ai-button" data-ai-level="easy" type="button">Easy</button>
+        <button class="ai-button is-active" data-ai-level="medium" type="button">Medium</button>
+        <button class="ai-button" data-ai-level="hard" type="button">Hard</button>
+      </div>
+
+      <div id="ai-status">AI: MEDIUM</div>
+    </div>
+
     <div id="game-container"></div>
   </div>
 

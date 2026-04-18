@@ -1,6 +1,6 @@
 /* =========================================================
-   Sprint A4 — Arena unify
-   Page-specific stylesheet
+   ArcPivot — Arena page
+   Clean consolidated page stylesheet
    ========================================================= */
 
 .body--arena {
@@ -25,7 +25,7 @@
   border-radius: 0;
   background: transparent;
   box-shadow: none;
-  padding: 40px 24px 76px;
+  padding: 38px 24px 76px;
 }
 
 .arena-panel::before,
@@ -143,15 +143,17 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
-  padding-top: 18px;
+  padding-top: 16px;
 }
+
+/* ---------------------------------------------------------
+   Hero
+   --------------------------------------------------------- */
 
 .arena-hero {
   width: 100%;
   max-width: 920px;
-  margin-top: 10px;
-  margin-bottom: 18px;
+  margin: 0 auto 18px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -220,41 +222,156 @@
   text-shadow: 0 0 10px rgba(245, 165, 36, 0.1);
 }
 
-.arena-meta-row {
+/* ---------------------------------------------------------
+   Stage stack:
+   upper free zone → locked box centered
+   lower free zone → arena rail centered
+   bottom → controls
+   --------------------------------------------------------- */
+
+.arena-stage-stack {
   width: 100%;
   max-width: 1180px;
+  flex: 1 1 auto;
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
-  margin-bottom: 20px;
+  grid-template-rows: 0.7fr auto 1fr auto;
+  align-items: stretch;
 }
 
-.arena-meta-box {
-  margin: 0;
-  padding: 10px 12px;
-  text-align: center;
-  font-size: 0.88rem;
-  line-height: 1.42;
-  background:
-    linear-gradient(180deg, rgba(20, 26, 36, 0.58) 0%, rgba(8, 10, 14, 0.72) 100%);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.06),
-    0 8px 16px rgba(0, 0, 0, 0.18);
+.arena-lock-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
+
+.arena-lock-box {
+  position: relative;
+  width: min(620px, 100%);
+  min-height: 118px;
+  padding: 16px 20px 18px;
+  border-radius: 18px;
+  border: 2px solid rgba(255, 191, 86, 0.86);
+  background:
+    linear-gradient(
+      180deg,
+      rgba(154, 160, 170, 0.32) 0%,
+      rgba(82, 88, 100, 0.34) 18%,
+      rgba(22, 26, 34, 0.84) 52%,
+      rgba(10, 12, 16, 0.96) 100%
+    );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    inset 0 14px 16px rgba(255, 255, 255, 0.06),
+    inset 0 -12px 18px rgba(0, 0, 0, 0.3),
+    0 20px 34px rgba(0, 0, 0, 0.28),
+    0 0 34px rgba(245, 165, 36, 0.26);
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.arena-lock-box::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -30%;
+  width: 34%;
+  height: 100%;
+  transform: skewX(-18deg);
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0),
+    rgba(255, 242, 212, 0.24),
+    rgba(255, 255, 255, 0)
+  );
+  filter: blur(2px);
+  animation: arenaLockedShine 5.8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.arena-lock-box::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0) 26%),
+    radial-gradient(circle at top, rgba(255, 214, 120, 0.12), rgba(255, 214, 120, 0) 42%);
+  pointer-events: none;
+}
+
+.arena-lock-kicker {
+  display: block;
+  font-family: "Orbitron", sans-serif;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: #ffd47f;
+  text-align: center;
+  position: relative;
+  z-index: 2;
+  text-shadow:
+    0 0 8px rgba(255, 191, 86, 0.16),
+    0 0 16px rgba(255, 191, 86, 0.08);
+}
+
+.arena-lock-value {
+  display: block;
+  margin-top: 9px;
+  font-family: "Orbitron", sans-serif;
+  font-size: 1.48rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #fff4d2;
+  text-align: center;
+  position: relative;
+  z-index: 2;
+  text-shadow:
+    0 0 10px rgba(255, 191, 86, 0.18),
+    0 0 22px rgba(255, 191, 86, 0.12);
+}
+
+.arena-lock-trait {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 28px;
+  margin: 10px auto 0;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 191, 86, 0.36);
+  background:
+    linear-gradient(180deg, rgba(118, 75, 16, 0.44) 0%, rgba(18, 14, 10, 0.8) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 0 12px rgba(255, 179, 66, 0.14);
+  color: #fff0c7;
+  font-family: "Orbitron", sans-serif;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  position: relative;
+  z-index: 2;
+}
+
+/* ---------------------------------------------------------
+   Selector zone — centered in lower free band
+   --------------------------------------------------------- */
 
 .arena-selector-zone {
-  width: 100%;
-  max-width: 1180px;
-  margin-top: auto;
-  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
 }
 
 .arena-selector-rail {
+  width: 100%;
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 12px;
+  align-self: center;
 }
 
 .arena-button {
@@ -379,12 +496,18 @@
   opacity: 1;
 }
 
+/* ---------------------------------------------------------
+   Control lane
+   --------------------------------------------------------- */
+
 .arena-control-lane {
+  width: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 18px;
-  margin-top: 2px;
+  margin-top: 0;
+  padding-top: 0;
 }
 
 .arena-back-button,
@@ -399,6 +522,10 @@
   filter: grayscale(0.12);
   pointer-events: none;
 }
+
+/* ---------------------------------------------------------
+   Broadcast bar
+   --------------------------------------------------------- */
 
 .arena-broadcast-bar {
   position: fixed;
@@ -612,23 +739,15 @@
   text-transform: uppercase;
 }
 
-/* Animations */
+/* ---------------------------------------------------------
+   Animations
+   --------------------------------------------------------- */
+
 @keyframes arenaBroadcastSweep {
-  0% {
-    left: -42%;
-    opacity: 0;
-  }
-  12% {
-    opacity: 1;
-  }
-  46% {
-    left: 20%;
-    opacity: 0.68;
-  }
-  100% {
-    left: 120%;
-    opacity: 0;
-  }
+  0% { left: -42%; opacity: 0; }
+  12% { opacity: 1; }
+  46% { left: 20%; opacity: 0.68; }
+  100% { left: 120%; opacity: 0; }
 }
 
 @keyframes arenaBroadcastPulse {
@@ -675,12 +794,8 @@
 }
 
 @keyframes arenaFeedMarquee {
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(-50%);
-  }
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
 }
 
 @keyframes arenaTickerEdgePulse {
@@ -700,14 +815,24 @@
   100% { transform: scale(1); }
 }
 
-/* Responsive */
+@keyframes arenaLockedShine {
+  0% { left: -36%; opacity: 0; }
+  10% { opacity: 1; }
+  34% { left: 118%; opacity: 0.72; }
+  100% { left: 118%; opacity: 0; }
+}
+
+/* ---------------------------------------------------------
+   Responsive
+   --------------------------------------------------------- */
+
 @media (max-width: 1180px) {
   .arena-panel {
     padding: 36px 18px 72px;
   }
 
-  .arena-meta-row {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .arena-stage-stack {
+    grid-template-rows: 0.45fr auto 1fr auto;
   }
 
   .arena-selector-rail {
@@ -731,7 +856,7 @@
 
   .arena-shell {
     min-height: calc(100vh - 130px);
-    padding-top: 14px;
+    padding-top: 12px;
   }
 
   .arena-kicker {
@@ -753,8 +878,16 @@
     font-size: 0.78rem;
   }
 
-  .arena-meta-row {
-    grid-template-columns: 1fr;
+  .arena-stage-stack {
+    grid-template-rows: 0.25fr auto 1fr auto;
+  }
+
+  .arena-lock-box {
+    min-height: 98px;
+  }
+
+  .arena-lock-value {
+    font-size: 1.1rem;
   }
 
   .arena-selector-rail {
@@ -798,151 +931,9 @@
     padding: 0 10px;
     font-size: 0.66rem;
   }
-}
-/* =========================================================
-   Sprint A4-b — Arena meta hierarchy polish
-   ========================================================= */
 
-/* meta-row opnieuw balanceren:
-   mode links, selected groot in midden, trait rechts */
-.arena-meta-row {
-  grid-template-columns: 1fr 1.4fr 1.4fr 1fr;
-  align-items: stretch;
-}
-
-.arena-meta-box--selected {
-  grid-column: 2 / span 2;
-  min-height: 92px;
-  padding: 14px 18px 16px;
-  border: 2px solid rgba(255, 191, 86, 0.72);
-  background:
-    linear-gradient(
-      180deg,
-      rgba(148, 154, 164, 0.28) 0%,
-      rgba(78, 84, 96, 0.32) 18%,
-      rgba(22, 26, 34, 0.82) 52%,
-      rgba(10, 12, 16, 0.94) 100%
-    );
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.12),
-    inset 0 12px 14px rgba(255, 255, 255, 0.06),
-    inset 0 -12px 18px rgba(0, 0, 0, 0.28),
-    0 18px 30px rgba(0, 0, 0, 0.26),
-    0 0 26px rgba(245, 165, 36, 0.2);
-  position: relative;
-  overflow: hidden;
-}
-
-.arena-meta-box--selected::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: -30%;
-  width: 34%;
-  height: 100%;
-  transform: skewX(-18deg);
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0),
-    rgba(255, 242, 212, 0.22),
-    rgba(255, 255, 255, 0)
-  );
-  filter: blur(2px);
-  animation: arenaSelectedShine 6s ease-in-out infinite;
-  pointer-events: none;
-}
-
-.arena-meta-box--selected::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0) 26%),
-    radial-gradient(circle at top, rgba(255, 214, 120, 0.1), rgba(255, 214, 120, 0) 42%);
-  pointer-events: none;
-}
-
-.arena-meta-selected-kicker {
-  display: block;
-  font-family: "Orbitron", sans-serif;
-  font-size: 0.78rem;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: #ffd47f;
-  text-align: center;
-  position: relative;
-  z-index: 2;
-  text-shadow:
-    0 0 8px rgba(255, 191, 86, 0.16),
-    0 0 16px rgba(255, 191, 86, 0.08);
-}
-
-.arena-meta-selected-value {
-  display: block;
-  margin-top: 8px;
-  font-family: "Orbitron", sans-serif;
-  font-size: 1.38rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #fff4d2;
-  text-align: center;
-  position: relative;
-  z-index: 2;
-  text-shadow:
-    0 0 10px rgba(255, 191, 86, 0.18),
-    0 0 22px rgba(255, 191, 86, 0.12);
-}
-
-/* ondersteunende boxes iets rustiger */
-.arena-meta-row .arena-meta-box:not(.arena-meta-box--selected) {
-  min-height: 78px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* shine animatie voor de selected box */
-@keyframes arenaSelectedShine {
-  0% {
-    left: -36%;
-    opacity: 0;
-  }
-  10% {
-    opacity: 1;
-  }
-  34% {
-    left: 118%;
-    opacity: 0.72;
-  }
-  100% {
-    left: 118%;
-    opacity: 0;
-  }
-}
-
-@media (max-width: 1180px) {
-  .arena-meta-row {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .arena-meta-box--selected {
-    grid-column: 1 / -1;
-  }
-}
-
-@media (max-width: 760px) {
-  .arena-meta-row {
-    grid-template-columns: 1fr;
-  }
-
-  .arena-meta-box--selected {
-    grid-column: auto;
-    min-height: 84px;
-  }
-
-  .arena-meta-selected-value {
-    font-size: 1.08rem;
+  .arena-back-button,
+  .arena-next-button {
+    min-width: 170px;
   }
 }
