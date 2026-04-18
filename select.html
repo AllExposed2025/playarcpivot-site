@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ArcPivot — Select</title>
+  <link rel="stylesheet" href="flow.css" />
+</head>
+<body>
+  <div class="page-shell">
+    <div class="top-mark">ARCPIVOT</div>
+
+    <main class="panel select-panel">
+      <div class="select-overlay"></div>
+      <div class="select-spotlight select-spotlight--left"></div>
+      <div class="select-spotlight select-spotlight--right"></div>
+      <div class="select-sweep"></div>
+      <div class="select-haze"></div>
+
+      <div class="select-shell">
+        <header class="select-header">
+          <h1 class="page-title">LOADOUT CHAMBER</h1>
+          <p class="page-subtitle">Precision now defines the outcome.</p>
+
+          <div class="select-meta">
+            <div class="summary-box select-meta-box" id="select-mode-box">
+              <strong>Mode:</strong> 1 VS 1
+            </div>
+
+            <div class="summary-box select-meta-box" id="select-arena-box">
+              <strong>Arena:</strong> PRIME ARENA
+            </div>
+
+            <div class="summary-box select-meta-box" id="select-signal-box">
+              <strong>Signal:</strong> Combat simulation channel active
+            </div>
+          </div>
+        </header>
+
+        <section class="select-stage" id="select-stage">
+          <aside class="preview-panel preview-panel--left preview-panel--active" id="preview-panel-left" data-player="p1">
+            <div class="preview-kicker">PLAYER ONE</div>
+            <div class="preview-title">COMBAT SIMULATION</div>
+            <div class="preview-edit-state" id="preview-left-edit-state">Editing live</div>
+
+            <div class="preview-visual">
+              <div class="preview-silhouette"></div>
+            </div>
+
+            <div class="preview-loadout">
+              <div class="preview-loadout-line" id="preview-left-fighter"><strong>Fighter:</strong> Arc Runner</div>
+              <div class="preview-loadout-line" id="preview-left-shield"><strong>Shield:</strong> Aegis Arc</div>
+              <div class="preview-loadout-line" id="preview-left-status"><strong>Status:</strong> Adjusting loadout</div>
+            </div>
+          </aside>
+
+          <section class="selection-core">
+            <div class="selection-focus-switch" id="selection-focus-switch">
+              <button class="focus-chip is-active" data-focus="p1" type="button">Edit Player One</button>
+              <button class="focus-chip" data-focus="p2" type="button">Edit Player Two</button>
+            </div>
+
+            <div class="summary-box selection-state-box" id="selection-state-box">
+              <strong>Editing:</strong> Player One
+            </div>
+
+            <div class="selection-module">
+              <div class="selection-label">Fighter Roster</div>
+
+              <div class="choice-grid">
+                <button class="choice-chip choice-chip--fighter" type="button" data-type="fighter" data-value="Arc Runner">Arc Runner</button>
+                <button class="choice-chip choice-chip--fighter" type="button" data-type="fighter" data-value="Iron Shade">Iron Shade</button>
+                <button class="choice-chip choice-chip--fighter" type="button" data-type="fighter" data-value="Volt Striker">Volt Striker</button>
+                <button class="choice-chip choice-chip--fighter" type="button" data-type="fighter" data-value="Nova Breaker">Nova Breaker</button>
+                <button class="choice-chip choice-chip--fighter" type="button" data-type="fighter" data-value="Ghost Hammer">Ghost Hammer</button>
+              </div>
+            </div>
+
+            <div class="selection-module">
+              <div class="selection-label">Shield Configuration</div>
+
+              <div class="choice-grid">
+                <button class="choice-chip choice-chip--shield" type="button" data-type="shield" data-value="Aegis Arc">Aegis Arc</button>
+                <button class="choice-chip choice-chip--shield" type="button" data-type="shield" data-value="Blade Wall">Blade Wall</button>
+                <button class="choice-chip choice-chip--shield" type="button" data-type="shield" data-value="Pulse Guard">Pulse Guard</button>
+                <button class="choice-chip choice-chip--shield" type="button" data-type="shield" data-value="Titan Screen">Titan Screen</button>
+                <button class="choice-chip choice-chip--shield" type="button" data-type="shield" data-value="Echo Plate">Echo Plate</button>
+              </div>
+            </div>
+          </section>
+
+          <aside class="preview-panel preview-panel--right" id="preview-panel-right" data-player="p2">
+            <div class="preview-kicker" id="preview-right-kicker">PLAYER TWO</div>
+            <div class="preview-title">COMBAT SIMULATION</div>
+            <div class="preview-edit-state" id="preview-right-edit-state">Visible live</div>
+
+            <div class="preview-visual">
+              <div class="preview-silhouette preview-silhouette--right"></div>
+            </div>
+
+            <div class="preview-loadout">
+              <div class="preview-loadout-line" id="preview-right-fighter"><strong>Fighter:</strong> Iron Shade</div>
+              <div class="preview-loadout-line" id="preview-right-shield"><strong>Shield:</strong> Blade Wall</div>
+              <div class="preview-loadout-line" id="preview-right-status"><strong>Status:</strong> Adjusting loadout</div>
+            </div>
+          </aside>
+        </section>
+
+        <div class="select-action-row">
+          <a class="landing-button landing-button-secondary select-back-button" href="arena.html">
+            <span class="landing-button-label">Back</span>
+            <span class="button-signal"></span>
+          </a>
+        </div>
+      </div>
+
+      <div class="broadcast-ticker">
+        <div class="broadcast-ticker-track" id="broadcast-ticker-track">
+          <span>ArcPivot Live Signal</span>
+          <span>•</span>
+          <span>Arena systems live — awaiting final confirmations</span>
+          <span>•</span>
+          <span>Loadout validation in progress</span>
+          <span>•</span>
+          <span>Combat simulation channel active</span>
+          <span>•</span>
+          <span>Final decisions define the outcome</span>
+
+          <span>•</span>
+          <span>ArcPivot Live Signal</span>
+          <span>•</span>
+          <span>Arena systems live — awaiting final confirmations</span>
+          <span>•</span>
+          <span>Loadout validation in progress</span>
+          <span>•</span>
+          <span>Combat simulation channel active</span>
+          <span>•</span>
+          <span>Final decisions define the outcome</span>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const mode = sessionStorage.getItem('ap_mode') || '1v1';
+    const arena = sessionStorage.getItem('ap_arena') || 'prime-arena';
+
+    const modeBox = document.getElementById('select-mode-box');
+    const arenaBox = document.getElementById('select-arena-box');
+    const signalBox = document.getElementById('select-signal-box');
+    const stage = document.getElementById('select-stage');
+    const tickerTrack = document.getElementById('broadcast-ticker-track');
+
+    const leftPanel = document.getElementById('preview-panel-left');
+    const rightPanel = document.getElementById('preview-panel-right');
+
+    const leftEditState = document.getElementById('preview-left-edit-state');
+    const rightEditState = document.getElementById('preview-right-edit-state');
+
+    const leftFighter = document.getElementById('preview-left-fighter');
+    const leftShield = document.getElementById('preview-left-shield');
+    const leftStatus = document.getElementById('preview-left-status');
+
+    const rightKicker = document.getElementById('preview-right-kicker');
+    const rightFighter = document.getElementById('preview-right-fighter');
+    const rightShield = document.getElementById('preview-right-shield');
+    const rightStatus = document.getElementById('preview-right-status');
+
+    const focusSwitch = document.getElementById('selection-focus-switch');
+    const focusButtons = document.querySelectorAll('.focus-chip');
+    const choiceChips = document.querySelectorAll('.choice-chip');
+    const selectionStateBox = document.getElementById('selection-state-box');
+
+    const selections = {
+      p1: {
+        fighter: 'Arc Runner',
+        shield: 'Aegis Arc',
+        status: 'Adjusting loadout'
+      },
+      p2: {
+        fighter: 'Iron Shade',
+        shield: 'Blade Wall',
+        status: 'Adjusting loadout'
+      }
+    };
+
+    let activePlayer = 'p1';
+
+    function modeLabel(value) {
+      if (value === 'arcade') return 'ARCADE';
+      if (value === 'tournaments') return 'TOURNAMENTS';
+      return '1 VS 1';
+    }
+
+    function arenaLabel(value) {
+      if (value === 'ion-bowl') return 'ION BOWL';
+      if (value === 'titan-dome') return 'TITAN DOME';
+      return 'PRIME ARENA';
+    }
+
+    function playerLabel(value) {
+      return value === 'p2' ? 'Player Two' : 'Player One';
+    }
+
+    function renderChoiceChips() {
+      choiceChips.forEach((chip) => {
+        const type = chip.dataset.type;
+        const value = chip.dataset.value;
+        const currentValue = selections[activePlayer][type];
+
+        chip.classList.toggle('is-active', currentValue === value);
+      });
+    }
+
+    function renderPanels() {
+      leftFighter.innerHTML = `<strong>Fighter:</strong> ${selections.p1.fighter}`;
+      leftShield.innerHTML = `<strong>Shield:</strong> ${selections.p1.shield}`;
+      leftStatus.innerHTML = `<strong>Status:</strong> ${selections.p1.status}`;
+
+      rightFighter.innerHTML = `<strong>Fighter:</strong> ${selections.p2.fighter}`;
+      rightShield.innerHTML = `<strong>Shield:</strong> ${selections.p2.shield}`;
+      rightStatus.innerHTML = `<strong>Status:</strong> ${selections.p2.status}`;
+
+      if (mode === '1v1') {
+        leftPanel.classList.toggle('preview-panel--active', activePlayer === 'p1');
+        rightPanel.classList.toggle('preview-panel--active', activePlayer === 'p2');
+
+        leftEditState.textContent = activePlayer === 'p1' ? 'Editing live' : 'Visible live';
+        rightEditState.textContent = activePlayer === 'p2' ? 'Editing live' : 'Visible live';
+
+        selectionStateBox.innerHTML = `<strong>Editing:</strong> ${playerLabel(activePlayer)}`;
+      }
+
+      if (mode !== '1v1') {
+        leftPanel.classList.add('preview-panel--active');
+        rightPanel.classList.remove('preview-panel--active');
+
+        leftEditState.textContent = 'Editing live';
+        rightEditState.textContent = 'Reserved channel';
+        selectionStateBox.innerHTML = `<strong>Selection:</strong> Player loadout`;
+      }
+
+      focusButtons.forEach((button) => {
+        button.classList.toggle('is-active', button.dataset.focus === activePlayer);
+      });
+
+      renderChoiceChips();
+    }
+
+    function applyModeContext() {
+      modeBox.innerHTML = `<strong>Mode:</strong> ${modeLabel(mode)}`;
+      arenaBox.innerHTML = `<strong>Arena:</strong> ${arenaLabel(arena)}`;
+
+      if (mode === 'arcade') {
+        activePlayer = 'p1';
+        focusSwitch.style.display = 'none';
+
+        rightKicker.textContent = 'AI OPPONENT';
+        selections.p2.fighter = 'AI Reserved';
+        selections.p2.shield = 'Adaptive Guard';
+        selections.p2.status = 'AI channel reserved';
+
+        signalBox.innerHTML = '<strong>Signal:</strong> Single-player simulation lane active';
+        tickerTrack.innerHTML = `
+          <span>ArcPivot Live Signal</span>
+          <span>•</span>
+          <span>Single-player simulation lane active</span>
+          <span>•</span>
+          <span>Arena systems live — AI channel standing by</span>
+          <span>•</span>
+          <span>Loadout validation in progress</span>
+          <span>•</span>
+          <span>Entry sequence awaiting final lock-in</span>
+
+          <span>•</span>
+          <span>ArcPivot Live Signal</span>
+          <span>•</span>
+          <span>Single-player simulation lane active</span>
+          <span>•</span>
+          <span>Arena systems live — AI channel standing by</span>
+          <span>•</span>
+          <span>Loadout validation in progress</span>
+          <span>•</span>
+          <span>Entry sequence awaiting final lock-in</span>
+        `;
+      }
+
+      if (mode === 'tournaments') {
+        activePlayer = 'p1';
+        focusSwitch.style.display = 'none';
+
+        rightKicker.textContent = 'TOURNAMENT SLOT';
+        selections.p2.fighter = 'Bracket Pending';
+        selections.p2.shield = 'Tournament Logic';
+        selections.p2.status = 'Bracket logic to be defined';
+
+        signalBox.innerHTML = '<strong>Signal:</strong> Tournament selection channel active';
+        tickerTrack.innerHTML = `
+          <span>ArcPivot Live Signal</span>
+          <span>•</span>
+          <span>Tournament selection channel active</span>
+          <span>•</span>
+          <span>Bracket systems awaiting final ruleset</span>
+          <span>•</span>
+          <span>Arena feed synchronized</span>
+          <span>•</span>
+          <span>Match slot reserved — configuration under review</span>
+
+          <span>•</span>
+          <span>ArcPivot Live Signal</span>
+          <span>•</span>
+          <span>Tournament selection channel active</span>
+          <span>•</span>
+          <span>Bracket systems awaiting final ruleset</span>
+          <span>•</span>
+          <span>Arena feed synchronized</span>
+          <span>•</span>
+          <span>Match slot reserved — configuration under review</span>
+        `;
+      }
+
+      if (mode === '1v1') {
+        stage.classList.add('select-stage--duel');
+        focusSwitch.style.display = 'grid';
+
+        signalBox.innerHTML = '<strong>Signal:</strong> Combat simulation channel active';
+        tickerTrack.innerHTML = `
+          <span>ArcPivot Live Signal</span>
+          <span>•</span>
+          <span>Arena systems live — awaiting final confirmations</span>
+          <span>•</span>
+          <span>Loadout validation in progress</span>
+          <span>•</span>
+          <span>Combat simulation channel active</span>
+          <span>•</span>
+          <span>Final decisions define the outcome</span>
+
+          <span>•</span>
+          <span>ArcPivot Live Signal</span>
+          <span>•</span>
+          <span>Arena systems live — awaiting final confirmations</span>
+          <span>•</span>
+          <span>Loadout validation in progress</span>
+          <span>•</span>
+          <span>Combat simulation channel active</span>
+          <span>•</span>
+          <span>Final decisions define the outcome</span>
+        `;
+      }
+
+      renderPanels();
+    }
+
+    leftPanel.addEventListener('click', () => {
+      if (mode === '1v1') {
+        activePlayer = 'p1';
+        renderPanels();
+      }
+    });
+
+    rightPanel.addEventListener('click', () => {
+      if (mode === '1v1') {
+        activePlayer = 'p2';
+        renderPanels();
+      }
+    });
+
+    focusButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        if (mode === '1v1') {
+          activePlayer = button.dataset.focus;
+          renderPanels();
+        }
+      });
+    });
+
+    choiceChips.forEach((chip) => {
+      chip.addEventListener('click', () => {
+        const type = chip.dataset.type;
+        const value = chip.dataset.value;
+
+        selections[activePlayer][type] = value;
+        selections[activePlayer].status = 'Adjusting loadout';
+
+        renderPanels();
+      });
+    });
+
+    applyModeContext();
+  </script>
+</body>
+</html>

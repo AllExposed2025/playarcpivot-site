@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ArcPivot — Arena Select</title>
+  <link rel="stylesheet" href="flow.css" />
+</head>
+<body>
+  <div class="page-shell">
+    <div class="top-mark">ARCPIVOT</div>
+
+    <main class="panel">
+      <h1 class="page-title">SELECT ARENA</h1>
+
+      <p class="page-subtitle">
+        Choose the stage where the match will unfold.
+      </p>
+
+      <div class="summary-box" id="mode-summary-box">
+        <strong>Mode:</strong> 1 VS 1
+      </div>
+
+      <div class="card-grid">
+        <button class="card-button active" data-arena="prime-arena">
+          <div class="card-title">PRIME ARENA</div>
+          <div class="card-body">
+            The default championship stage for the current ArcPivot flow.
+          </div>
+          <span class="card-status">Default</span>
+        </button>
+
+        <button class="card-button" data-arena="ion-bowl">
+          <div class="card-title">ION BOWL</div>
+          <div class="card-body">
+            A more electric arena identity with stronger event-tech presence.
+          </div>
+          <span class="card-status">Planned visual expansion</span>
+        </button>
+
+        <button class="card-button" data-arena="titan-dome">
+          <div class="card-title">TITAN DOME</div>
+          <div class="card-body">
+            A heavier premium stadium direction with larger-scale presentation potential.
+          </div>
+          <span class="card-status">Planned visual expansion</span>
+        </button>
+      </div>
+
+      <div class="summary-box" id="arena-summary-box">
+        <strong>Selected Arena:</strong> PRIME ARENA
+      </div>
+
+<div class="footer-actions">
+  <a class="secondary-button" href="mode.html">BACK</a>
+</div>
+    </main>
+  </div>
+
+ <script>
+  const arenaCards = document.querySelectorAll('.card-button');
+  const arenaSummaryBox = document.getElementById('arena-summary-box');
+  const modeSummaryBox = document.getElementById('mode-summary-box');
+
+  const mode = sessionStorage.getItem('ap_mode') || '1v1';
+  let selectedArena = sessionStorage.getItem('ap_arena') || 'prime-arena';
+
+  function modeLabel(value) {
+    if (value === 'arcade') return 'ARCADE';
+    if (value === 'tournaments') return 'TOURNAMENTS';
+    return '1 VS 1';
+  }
+
+  function arenaLabel(value) {
+    if (value === 'ion-bowl') return 'ION BOWL';
+    if (value === 'titan-dome') return 'TITAN DOME';
+    return 'PRIME ARENA';
+  }
+
+  function renderArenaSelection() {
+    arenaCards.forEach((card) => {
+      card.classList.toggle('active', card.dataset.arena === selectedArena);
+    });
+
+    modeSummaryBox.innerHTML = `<strong>Mode:</strong> ${modeLabel(mode)}`;
+    arenaSummaryBox.innerHTML = `<strong>Selected Arena:</strong> ${arenaLabel(selectedArena)}`;
+
+    sessionStorage.setItem('ap_mode', mode);
+    sessionStorage.setItem('ap_arena', selectedArena);
+  }
+
+  arenaCards.forEach((card) => {
+    card.addEventListener('click', () => {
+      selectedArena = card.dataset.arena;
+      sessionStorage.setItem('ap_arena', selectedArena);
+      renderArenaSelection();
+
+      window.location.href = 'select.html';
+    });
+  });
+
+  renderArenaSelection();
+</script>
+</body>
+</html>
