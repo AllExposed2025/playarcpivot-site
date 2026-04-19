@@ -11,33 +11,46 @@ const ARENA_CENTER_Y = (ARENA_TOP + ARENA_BOTTOM) / 2;
 
 const UNIT_SPEED = 360;
 
+const HORIZONTAL_SPEED_FACTOR = 0.55;
+const HORIZONTAL_SPEED = UNIT_SPEED * HORIZONTAL_SPEED_FACTOR;
+
+const LEFT_START_X = 76;
+const RIGHT_START_X = 884;
+
+const LANE_BACK_PADDING = 56;
+const LANE_FRONT_GAP = 66;
+const FIGHTER_Y_PADDING = 60;
+
 const AI_SETTINGS = {
   easy: {
     label: 'Easy',
-    speedMultiplier: 0.74,
-    reactionMs: 260,
-    attackBias: 0.18,
-    interceptBias: 0.60,
-    errorMargin: 26,
-    deadZone: 20
+    speedMultiplier: 0.60,
+    reactionMs: 340,
+    attackBias: 0.10,
+    interceptBias: 0.46,
+    errorMargin: 44,
+    deadZone: 30,
+    targetLerp: 0.18
   },
   medium: {
     label: 'Medium',
-    speedMultiplier: 0.90,
-    reactionMs: 150,
-    attackBias: 0.36,
-    interceptBias: 0.74,
-    errorMargin: 14,
-    deadZone: 14
+    speedMultiplier: 0.82,
+    reactionMs: 190,
+    attackBias: 0.24,
+    interceptBias: 0.70,
+    errorMargin: 18,
+    deadZone: 16,
+    targetLerp: 0.28
   },
   hard: {
     label: 'Hard',
-    speedMultiplier: 1.03,
-    reactionMs: 75,
-    attackBias: 0.56,
-    interceptBias: 0.86,
-    errorMargin: 6,
-    deadZone: 9
+    speedMultiplier: 0.96,
+    reactionMs: 90,
+    attackBias: 0.42,
+    interceptBias: 0.84,
+    errorMargin: 8,
+    deadZone: 10,
+    targetLerp: 0.38
   }
 };
 
@@ -101,11 +114,23 @@ let cursors;
 
 let aiDifficultyKey = 'medium';
 let aiDifficulty = AI_SETTINGS[aiDifficultyKey];
+let aiTargetX = RIGHT_START_X;
 let aiTargetY = ARENA_CENTER_Y;
+let aiDesiredTargetX = RIGHT_START_X;
+let aiDesiredTargetY = ARENA_CENTER_Y;
 let aiDecisionTimer = 0;
 let aiHudText;
 let aiUiStatus;
 let aiUiButtons = [];
+
+let sideUiStatus;
+let sideUiButtons = [];
+
+let playerSide = 'left';
+let aiSide = 'right';
+
+let humanFighter = null;
+let aiFighter = null;
 
 let leftScore = 0;
 let rightScore = 0;
@@ -164,7 +189,10 @@ function create() {
   createHeroGoalOverlay();
   createInput();
   createAIDifficultyDisplay();
+  initArcadeSideUI();
   initAIDifficultyUI();
+  setPlayerSide('left');
+  resetFighterPositions();
   setAIDifficulty('medium');
 
   resetCore(true);
@@ -187,11 +215,11 @@ function update(time, delta) {
     return;
   }
 
-  moveLeftFighter(dt);
+  moveHumanFighter(dt);
   moveAIOpponent(dt, delta);
   moveCore(dt);
 }
-``
+
 
 function drawArena() {
   const scene = sceneRef;
@@ -508,7 +536,7 @@ function createCore() {
 function createHelpText() {
   const scene = sceneRef;
 
-  scene.add.text(ARENA_CENTER_X, 590, 'W / S = PLAYER ONE // AI OPPONENT ACTIVE', {
+  scene.add.text(ARENA_CENTER_X, 590, 'ARROWS = HUMAN // CHOOSE LEFT OR RIGHT ABOVE', {
     fontFamily: 'Courier New',
     fontSize: '14px',
     color: '#f5f7fa'
@@ -580,16 +608,12 @@ function createHeroGoalOverlay() {
 function createInput() {
   const scene = sceneRef;
 
-  leftKeys = scene.input.keyboard.addKeys({
-    up: 'W',
-    down: 'S'
-  });
-
   cursors = scene.input.keyboard.createCursorKeys();
 
   scene.input.keyboard.on('keydown', unlockAudioOnce);
   scene.input.on('pointerdown', unlockAudioOnce);
 }
+
 function createAIDifficultyDisplay() {
   const scene = sceneRef;
 
@@ -599,6 +623,23 @@ function createAIDifficultyDisplay() {
     color: '#ffcf66',
     fontStyle: 'bold'
   }).setOrigin(1, 0.5);
+}
+
+function initArcadeSideUI() {
+  sideUiStatus = document.getElementById('side-status');
+  sideUiButtons = Array.from(document.querySelectorAll('.side-button'));
+
+  sideUiButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+      const side = button.dataset.playerSide;
+      setPlayerSide(side);
+      resetFighterPositions();
+      fighterHitCooldown = 0;
+      postHitCooldown = 0;
+      roundPaused = false;
+      resetCore(false);
+    });
+  });
 }
 
 function initAIDifficultyUI() {
@@ -613,6 +654,37 @@ function initAIDifficultyUI() {
   });
 }
 
+function setPlayerSide(side) {
+  if (side !== 'left' && side !== 'right') {
+    return;
+  }
+
+  playerSide = side;
+  aiSide = side === 'left' ? 'right' : 'left';
+
+  humanFighter = playerSide === 'left' ? leftFighter : rightFighter;
+  aiFighter = aiSide === 'left' ? leftFighter : rightFighter;
+
+  aiTargetX = aiFighter ? aiFighter.container.x : RIGHT_START_X;
+  aiDesiredTargetX = aiTargetX;
+  aiTargetY = aiFighter ? aiFighter.container.y : ARENA_CENTER_Y;
+  aiDesiredTargetY = aiTargetY;
+
+  if (sideUiStatus) {
+    sideUiStatus.textContent = `Player: ${playerSide.toUpperCase()} // AI: ${aiSide.toUpperCase()}`;
+  }
+
+  if (sideUiButtons.length) {
+    sideUiButtons.forEach((button) => {
+      button.classList.toggle('is-active', button.dataset.playerSide === side);
+    });
+  }
+
+  if (aiHudText && aiDifficulty) {
+    aiHudText.setText(`AI: ${aiDifficulty.label.toUpperCase()}`);
+  }
+}
+
 function setAIDifficulty(level) {
   if (!AI_SETTINGS[level]) {
     return;
@@ -621,7 +693,11 @@ function setAIDifficulty(level) {
   aiDifficultyKey = level;
   aiDifficulty = AI_SETTINGS[level];
   aiDecisionTimer = 0;
-  aiTargetY = rightFighter ? rightFighter.container.y : ARENA_CENTER_Y;
+
+  aiTargetX = aiFighter ? aiFighter.container.x : RIGHT_START_X;
+  aiDesiredTargetX = aiTargetX;
+  aiTargetY = aiFighter ? aiFighter.container.y : ARENA_CENTER_Y;
+  aiDesiredTargetY = aiTargetY;
 
   if (aiHudText) {
     aiHudText.setText(`AI: ${aiDifficulty.label.toUpperCase()}`);
@@ -638,79 +714,201 @@ function setAIDifficulty(level) {
   }
 }
 
+function resetFighterPositions() {
+  leftFighter.container.x = LEFT_START_X;
+  leftFighter.container.y = ARENA_CENTER_Y;
+
+  rightFighter.container.x = RIGHT_START_X;
+  rightFighter.container.y = ARENA_CENTER_Y;
+
+  if (humanFighter) {
+    clampFighterToLane(humanFighter);
+  }
+
+  if (aiFighter) {
+    clampFighterToLane(aiFighter);
+
+    aiTargetX = aiFighter.container.x;
+    aiDesiredTargetX = aiTargetX;
+    aiTargetY = aiFighter.container.y;
+    aiDesiredTargetY = aiTargetY;
+  }
+}
+
+function getLaneBounds(fighter) {
+  const minY = ARENA_TOP + FIGHTER_Y_PADDING;
+  const maxY = ARENA_BOTTOM - FIGHTER_Y_PADDING;
+
+  if (fighter.facing === 1) {
+    return {
+      minX: ARENA_LEFT + LANE_BACK_PADDING,
+      maxX: ARENA_CENTER_X - LANE_FRONT_GAP,
+      minY,
+      maxY
+    };
+  }
+
+  return {
+    minX: ARENA_CENTER_X + LANE_FRONT_GAP,
+    maxX: ARENA_RIGHT - LANE_BACK_PADDING,
+    minY,
+    maxY
+  };
+}
+
+function clampFighterToLane(fighter) {
+  const bounds = getLaneBounds(fighter);
+
+  fighter.container.x = Phaser.Math.Clamp(fighter.container.x, bounds.minX, bounds.maxX);
+  fighter.container.y = Phaser.Math.Clamp(fighter.container.y, bounds.minY, bounds.maxY);
+}
+
+function moveHumanFighter(dt) {
+  if (!humanFighter || !cursors) {
+    return;
+  }
+
+  let inputX = 0;
+  let inputY = 0;
+
+  if (cursors.left.isDown) {
+    inputX -= 1;
+  }
+
+  if (cursors.right.isDown) {
+    inputX += 1;
+  }
+
+  if (cursors.up.isDown) {
+    inputY -= 1;
+  }
+
+  if (cursors.down.isDown) {
+    inputY += 1;
+  }
+
+  if (inputX !== 0 || inputY !== 0) {
+    if (inputX !== 0 && inputY !== 0) {
+      inputX *= 0.7071;
+      inputY *= 0.7071;
+    }
+
+    humanFighter.container.x += inputX * HORIZONTAL_SPEED * dt;
+    humanFighter.container.y += inputY * UNIT_SPEED * dt;
+  }
+
+  clampFighterToLane(humanFighter);
+}
+
 function moveAIOpponent(dt, delta) {
-  if (!rightFighter) {
+  if (!aiFighter) {
     return;
   }
 
   aiDecisionTimer -= delta;
 
   if (aiDecisionTimer <= 0) {
-    aiTargetY = computeAITargetY();
+    aiDesiredTargetX = computeAITargetX();
+    aiDesiredTargetY = computeAITargetY();
     aiDecisionTimer = aiDifficulty.reactionMs;
   }
 
-  const diff = aiTargetY - rightFighter.container.y;
+  aiTargetX = Phaser.Math.Linear(aiTargetX, aiDesiredTargetX, aiDifficulty.targetLerp);
+  aiTargetY = Phaser.Math.Linear(aiTargetY, aiDesiredTargetY, aiDifficulty.targetLerp);
 
-  if (Math.abs(diff) > aiDifficulty.deadZone) {
-    const direction = Math.sign(diff);
-    const moveAmount = UNIT_SPEED * aiDifficulty.speedMultiplier * dt;
-    rightFighter.container.y += direction * Math.min(Math.abs(diff), moveAmount);
+  const dx = aiTargetX - aiFighter.container.x;
+  const dy = aiTargetY - aiFighter.container.y;
+
+  if (Math.abs(dx) > aiDifficulty.deadZone) {
+    const xStep = HORIZONTAL_SPEED * aiDifficulty.speedMultiplier * dt;
+    aiFighter.container.x += Math.sign(dx) * Math.min(Math.abs(dx), xStep);
   }
 
-  rightFighter.container.y = Phaser.Math.Clamp(
-    rightFighter.container.y,
-    ARENA_TOP + 60,
-    ARENA_BOTTOM - 60
-  );
+  if (Math.abs(dy) > aiDifficulty.deadZone) {
+    const yStep = UNIT_SPEED * aiDifficulty.speedMultiplier * dt;
+    aiFighter.container.y += Math.sign(dy) * Math.min(Math.abs(dy), yStep);
+  }
+
+  clampFighterToLane(aiFighter);
+}
+
+function computeAITargetX() {
+  if (!aiFighter) {
+    return RIGHT_START_X;
+  }
+
+  const bounds = getLaneBounds(aiFighter);
+  const laneWidth = bounds.maxX - bounds.minX;
+
+  const backX = aiFighter.facing === 1
+    ? bounds.minX + laneWidth * 0.12
+    : bounds.maxX - laneWidth * 0.12;
+
+  const neutralX = aiFighter.facing === 1
+    ? bounds.minX + laneWidth * 0.42
+    : bounds.maxX - laneWidth * 0.42;
+
+  const forwardX = aiFighter.facing === 1
+    ? bounds.maxX - laneWidth * 0.08
+    : bounds.minX + laneWidth * 0.08;
+
+  const coreOnAiHalf = aiSide === 'left'
+    ? core.x < ARENA_CENTER_X
+    : core.x > ARENA_CENTER_X;
+
+  const approachingAi = aiSide === 'left'
+    ? coreVelocityX < 0
+    : coreVelocityX > 0;
+
+  if (approachingAi) {
+    return Phaser.Math.Linear(neutralX, forwardX, aiDifficulty.interceptBias);
+  }
+
+  if (coreOnAiHalf) {
+    return Phaser.Math.Linear(backX, neutralX, 0.62);
+  }
+
+  return neutralX;
 }
 
 function computeAITargetY() {
-  const minY = ARENA_TOP + 60;
-  const maxY = ARENA_BOTTOM - 60;
-  const centerY = ARENA_CENTER_Y;
+  if (!aiFighter) {
+    return ARENA_CENTER_Y;
+  }
 
-  const shadowY = Phaser.Math.Linear(centerY, core.y, aiDifficulty.attackBias);
+  const bounds = getLaneBounds(aiFighter);
+  const shadowY = Phaser.Math.Linear(ARENA_CENTER_Y, core.y, aiDifficulty.attackBias);
   let targetY = shadowY;
 
-  if (coreVelocityX > 0) {
-    const shieldX = getShieldCenterX(rightFighter) - CORE_RADIUS;
-    let predictedY = core.y;
+  const approachingAi = aiSide === 'left'
+    ? coreVelocityX < 0
+    : coreVelocityX > 0;
 
-    if (core.x < shieldX) {
-      const timeToIntercept = (shieldX - core.x) / Math.max(coreVelocityX, 1);
-      predictedY = core.y + coreVelocityY * timeToIntercept;
-    }
+  if (approachingAi) {
+    const shieldX = getShieldCenterX(aiFighter);
+    const timeToIntercept = Math.abs(core.x - shieldX) / Math.max(Math.abs(coreVelocityX), 1);
 
-    predictedY = Phaser.Math.Clamp(predictedY, minY, maxY);
+    let predictedY = core.y + coreVelocityY * timeToIntercept;
+    predictedY = Phaser.Math.Clamp(predictedY, bounds.minY, bounds.maxY);
 
-    const dangerFactor = Phaser.Math.Clamp(
-      (core.x - ARENA_CENTER_X) / (ARENA_RIGHT - ARENA_CENTER_X),
-      0,
-      1
-    );
-
-    const interceptY = Phaser.Math.Linear(
+    targetY = Phaser.Math.Linear(
       shadowY,
       predictedY,
-      0.56 + (dangerFactor * aiDifficulty.interceptBias * 0.34)
+      0.48 + aiDifficulty.interceptBias * 0.28
     );
-
-    targetY = interceptY;
   } else {
-    const retreatY = Phaser.Math.Linear(centerY, core.y, aiDifficulty.attackBias * 0.66);
-
-    if (core.x > ARENA_CENTER_X + 80) {
-      targetY = Phaser.Math.Linear(retreatY, core.y, aiDifficulty.attackBias);
-    } else {
-      targetY = retreatY;
-    }
+    targetY = Phaser.Math.Linear(
+      ARENA_CENTER_Y,
+      core.y,
+      aiDifficulty.attackBias * 0.52
+    );
   }
 
   targetY += Phaser.Math.Between(-aiDifficulty.errorMargin, aiDifficulty.errorMargin);
 
-  return Phaser.Math.Clamp(targetY, minY, maxY);
+  return Phaser.Math.Clamp(targetY, bounds.minY, bounds.maxY);
 }
+
 function unlockAudioOnce() {
   if (!audioCtx) {
     try {
@@ -759,30 +957,6 @@ function playGoalSound() {
   gain2.connect(audioCtx.destination);
   osc2.start(now);
   osc2.stop(now + 0.26);
-}
-
-function moveLeftFighter(dt) {
-  if (leftKeys.up.isDown) {
-    leftFighter.container.y -= UNIT_SPEED * dt;
-  }
-
-  if (leftKeys.down.isDown) {
-    leftFighter.container.y += UNIT_SPEED * dt;
-  }
-
-  leftFighter.container.y = Phaser.Math.Clamp(leftFighter.container.y, ARENA_TOP + 60, ARENA_BOTTOM - 60);
-}
-
-function moveRightFighter(dt) {
-  if (cursors.up.isDown) {
-    rightFighter.container.y -= UNIT_SPEED * dt;
-  }
-
-  if (cursors.down.isDown) {
-    rightFighter.container.y += UNIT_SPEED * dt;
-  }
-
-  rightFighter.container.y = Phaser.Math.Clamp(rightFighter.container.y, ARENA_TOP + 60, ARENA_BOTTOM - 60);
 }
 
 function moveCore(dt) {
@@ -1473,5 +1647,11 @@ function resetCore(isFirstStart) {
   applyTrajectoryConstraints(direction);
 
   aiDecisionTimer = 0;
-  aiTargetY = rightFighter ? rightFighter.container.y : ARENA_CENTER_Y;
+
+  if (aiFighter) {
+    aiTargetX = aiFighter.container.x;
+    aiDesiredTargetX = aiTargetX;
+    aiTargetY = aiFighter.container.y;
+    aiDesiredTargetY = aiTargetY;
+  }
 }
