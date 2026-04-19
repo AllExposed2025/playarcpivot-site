@@ -21,36 +21,56 @@ const LANE_BACK_PADDING = 56;
 const LANE_FRONT_GAP = 66;
 const FIGHTER_Y_PADDING = 60;
 
+const PRESSURE_DEEP_THRESHOLD = 0.30;
+const PRESSURE_FORWARD_THRESHOLD = 0.72;
+
+const FORWARD_RETURN_SPEED_BONUS = 1.14;
+const FORWARD_VERTICAL_BONUS = 1.10;
+
+const DEEP_RETURN_SPEED_PENALTY = 0.90;
+const DEEP_VERTICAL_PENALTY = 0.86;
+const RALLY_HITS_PER_STEP = 2;
+const RALLY_SPEED_STEP = 0.04;
+const MAX_RALLY_SPEED_MULTIPLIER = 1.30;
 const AI_SETTINGS = {
   easy: {
     label: 'Easy',
-    speedMultiplier: 0.60,
-    reactionMs: 340,
+    speedMultiplier: 0.58,
+    reactionMs: 360,
     attackBias: 0.10,
-    interceptBias: 0.46,
-    errorMargin: 44,
-    deadZone: 30,
-    targetLerp: 0.18
+    interceptBias: 0.42,
+    errorMargin: 52,
+    deadZone: 32,
+    targetLerp: 0.16,
+    forwardCommit: 0.28,
+    xErrorMargin: 26,
+    frontExposureError: 26
   },
   medium: {
     label: 'Medium',
-    speedMultiplier: 0.82,
-    reactionMs: 190,
-    attackBias: 0.24,
-    interceptBias: 0.70,
-    errorMargin: 18,
+    speedMultiplier: 0.80,
+    reactionMs: 210,
+    attackBias: 0.22,
+    interceptBias: 0.64,
+    errorMargin: 20,
     deadZone: 16,
-    targetLerp: 0.28
+    targetLerp: 0.24,
+    forwardCommit: 0.42,
+    xErrorMargin: 14,
+    frontExposureError: 14
   },
   hard: {
     label: 'Hard',
-    speedMultiplier: 0.96,
-    reactionMs: 90,
-    attackBias: 0.42,
-    interceptBias: 0.84,
-    errorMargin: 8,
-    deadZone: 10,
-    targetLerp: 0.38
+    speedMultiplier: 0.94,
+    reactionMs: 105,
+    attackBias: 0.36,
+    interceptBias: 0.76,
+    errorMargin: 10,
+    deadZone: 11,
+    targetLerp: 0.30,
+    forwardCommit: 0.56,
+    xErrorMargin: 8,
+    frontExposureError: 10
   }
 };
 
@@ -140,6 +160,9 @@ let streakCount = 0;
 
 let coreVelocityX = START_CORE_SPEED_X;
 let coreVelocityY = START_CORE_SPEED_Y;
+
+let rallyHitCount = 0;
+let rallySpeedMultiplier = 1;
 
 let roundPaused = false;
 let postHitCooldown = 0;
@@ -763,6 +786,54 @@ function clampFighterToLane(fighter) {
   fighter.container.y = Phaser.Math.Clamp(fighter.container.y, bounds.minY, bounds.maxY);
 }
 
+function getForwardProgress(fighter) {
+  const bounds = getLaneBounds(fighter);
+  const laneWidth = Math.max(bounds.maxX - bounds.minX, 1);
+
+  if (fighter.facing === 1) {
+    return Phaser.Math.Clamp((fighter.container.x - bounds.minX) / laneWidth, 0, 1);
+  }
+
+  return Phaser.Math.Clamp((bounds.maxX - fighter.container.x) / laneWidth, 0, 1);
+}
+
+function getPressureState(fighter) {
+  const progress = getForwardProgress(fighter);
+
+  if (progress >= PRESSURE_FORWARD_THRESHOLD) {
+    return {
+      zone: 'forward',
+      speedMultiplier: FORWARD_RETURN_SPEED_BONUS,
+      verticalMultiplier: FORWARD_VERTICAL_BONUS
+    };
+  }
+
+  if (progress <= PRESSURE_DEEP_THRESHOLD) {
+    return {
+      zone: 'deep',
+      speedMultiplier: DEEP_RETURN_SPEED_PENALTY,
+      verticalMultiplier: DEEP_VERTICAL_PENALTY
+    };
+  }
+
+  return {
+    zone: 'neutral',
+    speedMultiplier: 1,
+    verticalMultiplier: 1
+  };
+}
+
+function laneXFromProgress(fighter, progress) {
+  const bounds = getLaneBounds(fighter);
+  const clamped = Phaser.Math.Clamp(progress, 0, 1);
+
+  if (fighter.facing === 1) {
+    return Phaser.Math.Linear(bounds.minX, bounds.maxX, clamped);
+  }
+
+  return Phaser.Math.Linear(bounds.maxX, bounds.minX, clamped);
+}
+
 function moveHumanFighter(dt) {
   if (!humanFighter || !cursors) {
     return;
@@ -838,37 +909,43 @@ function computeAITargetX() {
   }
 
   const bounds = getLaneBounds(aiFighter);
-  const laneWidth = bounds.maxX - bounds.minX;
 
-  const backX = aiFighter.facing === 1
-    ? bounds.minX + laneWidth * 0.12
-    : bounds.maxX - laneWidth * 0.12;
-
-  const neutralX = aiFighter.facing === 1
-    ? bounds.minX + laneWidth * 0.42
-    : bounds.maxX - laneWidth * 0.42;
-
-  const forwardX = aiFighter.facing === 1
-    ? bounds.maxX - laneWidth * 0.08
-    : bounds.minX + laneWidth * 0.08;
-
-  const coreOnAiHalf = aiSide === 'left'
-    ? core.x < ARENA_CENTER_X
-    : core.x > ARENA_CENTER_X;
+  const backX = laneXFromProgress(aiFighter, 0.18);
+  const neutralX = laneXFromProgress(aiFighter, 0.44);
+  const forwardX = laneXFromProgress(aiFighter, 0.70);
 
   const approachingAi = aiSide === 'left'
     ? coreVelocityX < 0
     : coreVelocityX > 0;
 
+  const coreOnAiHalf = aiSide === 'left'
+    ? core.x < ARENA_CENTER_X
+    : core.x > ARENA_CENTER_X;
+
+  const dangerFactor = aiSide === 'left'
+    ? Phaser.Math.Clamp((ARENA_CENTER_X - core.x) / (ARENA_CENTER_X - ARENA_LEFT), 0, 1)
+    : Phaser.Math.Clamp((core.x - ARENA_CENTER_X) / (ARENA_RIGHT - ARENA_CENTER_X), 0, 1);
+
+  let targetX = neutralX;
+
   if (approachingAi) {
-    return Phaser.Math.Linear(neutralX, forwardX, aiDifficulty.interceptBias);
+    if (coreOnAiHalf) {
+      const commitAmount = Phaser.Math.Linear(0.18, aiDifficulty.forwardCommit, dangerFactor);
+      targetX = Phaser.Math.Linear(neutralX, forwardX, commitAmount);
+    } else {
+      targetX = Phaser.Math.Linear(backX, neutralX, 0.72);
+    }
+  } else {
+    if (coreOnAiHalf) {
+      targetX = Phaser.Math.Linear(backX, neutralX, 0.42);
+    } else {
+      targetX = Phaser.Math.Linear(backX, neutralX, aiDifficulty.attackBias * 0.45);
+    }
   }
 
-  if (coreOnAiHalf) {
-    return Phaser.Math.Linear(backX, neutralX, 0.62);
-  }
+  targetX += Phaser.Math.Between(-aiDifficulty.xErrorMargin, aiDifficulty.xErrorMargin);
 
-  return neutralX;
+  return Phaser.Math.Clamp(targetX, bounds.minX, bounds.maxX);
 }
 
 function computeAITargetY() {
@@ -877,6 +954,7 @@ function computeAITargetY() {
   }
 
   const bounds = getLaneBounds(aiFighter);
+  const forwardProgress = getForwardProgress(aiFighter);
   const shadowY = Phaser.Math.Linear(ARENA_CENTER_Y, core.y, aiDifficulty.attackBias);
   let targetY = shadowY;
 
@@ -894,17 +972,23 @@ function computeAITargetY() {
     targetY = Phaser.Math.Linear(
       shadowY,
       predictedY,
-      0.48 + aiDifficulty.interceptBias * 0.28
+      0.40 + aiDifficulty.interceptBias * 0.34
     );
   } else {
     targetY = Phaser.Math.Linear(
       ARENA_CENTER_Y,
       core.y,
-      aiDifficulty.attackBias * 0.52
+      aiDifficulty.attackBias * 0.42
     );
   }
 
-  targetY += Phaser.Math.Between(-aiDifficulty.errorMargin, aiDifficulty.errorMargin);
+  let dynamicError = aiDifficulty.errorMargin;
+
+  if (forwardProgress >= PRESSURE_FORWARD_THRESHOLD) {
+    dynamicError += aiDifficulty.frontExposureError;
+  }
+
+  targetY += Phaser.Math.Between(-dynamicError, dynamicError);
 
   return Phaser.Math.Clamp(targetY, bounds.minY, bounds.maxY);
 }
@@ -1013,6 +1097,7 @@ function handleFighterCollisions() {
 function resolveShieldCollision(fighter) {
   const shieldX = getShieldCenterX(fighter);
   const direction = core.x >= shieldX ? 1 : -1;
+  const pressure = getPressureState(fighter);
 
   core.x = shieldX + direction * (SHIELD_WIDTH / 2 + CORE_RADIUS + 1);
 
@@ -1024,16 +1109,24 @@ function resolveShieldCollision(fighter) {
 
   const curvedResponse = Math.sin(relativeY * (Math.PI / 2));
 
-  coreVelocityX = Math.max(Math.abs(coreVelocityX), MIN_HORIZONTAL_SPEED) * direction * 1.03;
+  coreVelocityX =
+    Math.max(Math.abs(coreVelocityX), MIN_HORIZONTAL_SPEED) *
+    direction *
+    1.03 *
+    pressure.speedMultiplier;
 
-  const targetVY = curvedResponse * Math.max(Math.abs(coreVelocityX) * 0.88, 170);
+  const targetVY =
+    curvedResponse *
+    Math.max(Math.abs(coreVelocityX) * 0.88, 170) *
+    pressure.verticalMultiplier;
 
   coreVelocityY = Phaser.Math.Linear(coreVelocityY, targetVY, 0.75);
 
   fighterHitCooldown = 70;
+  registerRallyHit();
 
   applyTrajectoryConstraints(direction);
-  onShieldHit(fighter);
+  onShieldHit(fighter, pressure.zone);
   onCoreHit();
   syncCoreVisuals();
 }
@@ -1059,6 +1152,7 @@ function isCoreTouchingBody(fighter) {
 function resolveBodyCollision(fighter) {
   const bodyX = fighter.container.x + (-8 * fighter.facing);
   const bodyY = fighter.container.y;
+  const pressure = getPressureState(fighter);
 
   let dx = core.x - bodyX;
   let dy = core.y - bodyY;
@@ -1076,16 +1170,17 @@ function resolveBodyCollision(fighter) {
   coreVelocityX = coreVelocityX - 2 * dot * nx;
   coreVelocityY = coreVelocityY - 2 * dot * ny;
 
-  coreVelocityX *= 1.01;
-  coreVelocityY *= 1.01;
+  coreVelocityX *= 1.01 * pressure.speedMultiplier;
+  coreVelocityY *= 1.01 * pressure.verticalMultiplier;
 
   core.x = bodyX + nx * (CORE_RADIUS + BODY_RADIUS + 1);
   core.y = bodyY + ny * (CORE_RADIUS + BODY_RADIUS + 1);
 
   fighterHitCooldown = 70;
+  registerRallyHit();
 
   applyTrajectoryConstraints();
-  onBodyHit(fighter);
+  onBodyHit(fighter, pressure.zone);
   onCoreHit();
   syncCoreVisuals();
 }
@@ -1507,10 +1602,26 @@ function getShieldCenterX(fighter) {
   return fighter.container.x + SHIELD_OFFSET * fighter.facing;
 }
 
-function onShieldHit(fighter) {
+function onShieldHit(fighter, pressureZone = 'neutral') {
+  let hitScale = 1.18;
+  let glowAlpha = 0.22;
+  let shieldColor = 0xffc15a;
+
+  if (pressureZone === 'forward') {
+    hitScale = 1.28;
+    glowAlpha = 0.30;
+    shieldColor = 0xffd27a;
+  }
+
+  if (pressureZone === 'deep') {
+    hitScale = 1.12;
+    glowAlpha = 0.16;
+    shieldColor = 0xf0b24a;
+  }
+
   sceneRef.tweens.add({
     targets: [fighter.shield, fighter.shieldGlow],
-    scaleX: 1.18,
+    scaleX: hitScale,
     alpha: 1,
     yoyo: true,
     duration: 90
@@ -1523,8 +1634,8 @@ function onShieldHit(fighter) {
     duration: 70
   });
 
-  fighter.shield.setFillStyle(0xffc15a, 1);
-  fighter.shieldGlow.setAlpha(0.22);
+  fighter.shield.setFillStyle(shieldColor, 1);
+  fighter.shieldGlow.setAlpha(glowAlpha);
 
   sceneRef.time.delayedCall(90, () => {
     fighter.shield.setFillStyle(0xf5a524, 0.92);
@@ -1532,17 +1643,30 @@ function onShieldHit(fighter) {
   });
 }
 
-function onBodyHit(fighter) {
+function onBodyHit(fighter, pressureZone = 'neutral') {
+  let bodyScale = 1.12;
+  let bodyColor = 0x30405c;
+
+  if (pressureZone === 'forward') {
+    bodyScale = 1.18;
+    bodyColor = 0x425474;
+  }
+
+  if (pressureZone === 'deep') {
+    bodyScale = 1.08;
+    bodyColor = 0x28364e;
+  }
+
   sceneRef.tweens.add({
     targets: [fighter.body, fighter.aura],
-    scaleX: 1.12,
-    scaleY: 1.12,
+    scaleX: bodyScale,
+    scaleY: bodyScale,
     alpha: 1,
     yoyo: true,
     duration: 90
   });
 
-  fighter.body.setFillStyle(0x30405c, 1);
+  fighter.body.setFillStyle(bodyColor, 1);
 
   sceneRef.time.delayedCall(100, () => {
     fighter.body.setFillStyle(0x1b2230, 1);
@@ -1568,6 +1692,31 @@ function onCoreHit() {
     yoyo: true,
     duration: 80
   });
+}
+
+function resetRallyState() {
+  rallyHitCount = 0;
+  rallySpeedMultiplier = 1;
+}
+
+function registerRallyHit() {
+  rallyHitCount++;
+
+  const stepCount = Math.floor(rallyHitCount / RALLY_HITS_PER_STEP);
+  const desiredMultiplier = Math.min(
+    1 + stepCount * RALLY_SPEED_STEP,
+    MAX_RALLY_SPEED_MULTIPLIER
+  );
+
+  if (desiredMultiplier > rallySpeedMultiplier) {
+    const scale = desiredMultiplier / rallySpeedMultiplier;
+
+    coreVelocityX *= scale;
+    coreVelocityY *= scale;
+
+    rallySpeedMultiplier = desiredMultiplier;
+    applyTrajectoryConstraints();
+  }
 }
 
 function updateTrail(dt) {
@@ -1644,9 +1793,11 @@ function resetCore(isFirstStart) {
     }
   }
 
-  applyTrajectoryConstraints(direction);
 
-  aiDecisionTimer = 0;
+applyTrajectoryConstraints(direction);
+resetRallyState();
+
+aiDecisionTimer = 0;
 
   if (aiFighter) {
     aiTargetX = aiFighter.container.x;
