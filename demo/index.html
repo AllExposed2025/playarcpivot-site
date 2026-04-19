@@ -11,16 +11,29 @@
   <div id="game-shell">
     <div id="game-title">ARCPIVOT RUSH DUEL</div>
 
-    <div id="ai-controls" aria-label="AI difficulty controls">
-      <div class="ai-controls-label">AI Opponent</div>
+    <div id="arcade-controls" aria-label="Arcade controls">
+      <div class="control-group">
+        <div class="control-label">Arcade Side</div>
 
-      <div class="ai-controls-buttons">
-        <button class="ai-button" data-ai-level="easy" type="button">Easy</button>
-        <button class="ai-button is-active" data-ai-level="medium" type="button">Medium</button>
-        <button class="ai-button" data-ai-level="hard" type="button">Hard</button>
+        <div class="control-buttons">
+          <button class="side-button is-active" data-player-side="left" type="button">Play Left</button>
+          <button class="side-button" data-player-side="right" type="button">Play Right</button>
+        </div>
+
+        <div class="control-status" id="side-status">Player: LEFT // AI: RIGHT</div>
       </div>
 
-      <div id="ai-status">AI: MEDIUM</div>
+      <div class="control-group">
+        <div class="control-label">AI Opponent</div>
+
+        <div class="control-buttons">
+          <button class="ai-button" data-ai-level="easy" type="button">Easy</button>
+          <button class="ai-button is-active" data-ai-level="medium" type="button">Medium</button>
+          <button class="ai-button" data-ai-level="hard" type="button">Hard</button>
+        </div>
+
+        <div class="control-status" id="ai-status">AI: MEDIUM</div>
+      </div>
     </div>
 
     <div id="game-container"></div>
