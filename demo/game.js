@@ -42,7 +42,7 @@ const AI_SETTINGS = {
 };
 
 const SHIELD_WIDTH = 16;
-const SHIELD_HEIGHT = 120;
+const SHIELD_HEIGHT = 96;
 const SHIELD_OFFSET = 18;
 const BODY_RADIUS = 18;
 
