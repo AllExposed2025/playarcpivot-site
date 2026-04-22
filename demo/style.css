@@ -184,7 +184,7 @@ body {
   display: none;
 }
 
-body.touch-device.landscape-mode #touch-overlay {
+body.touch-device.layout-phone-landscape #touch-overlay {
   display: block;
 }
 
@@ -248,7 +248,7 @@ body.touch-device.landscape-mode #touch-overlay {
   border-radius: 12px;
 }
 
-body.touch-device.portrait-mode #rotate-overlay {
+body.touch-device.layout-phone-portrait #rotate-overlay {
   display: flex;
 }
 
@@ -280,108 +280,76 @@ body.touch-device.portrait-mode #rotate-overlay {
   line-height: 1.4;
 }
 
-@media (max-width: 1220px) {
-  #arcade-controls {
-    grid-template-columns: 1fr;
-  }
-
-  .control-group {
-    grid-template-columns: 1fr;
-    justify-items: center;
-    text-align: center;
-  }
-
-  .control-status {
-    text-align: center;
-  }
+/* Explicit layout modes */
+body.layout-tablet #arcade-controls,
+body.layout-phone-portrait #arcade-controls {
+  grid-template-columns: 1fr;
 }
 
-@media (max-width: 900px) and (orientation: portrait) {
-  #game-shell {
-    padding: 8px 6px 10px;
-    gap: 6px;
-  }
-
-  #game-title {
-    font-size: clamp(0.96rem, 5vw, 1.32rem);
-    letter-spacing: 0.1em;
-  }
-
-  #arcade-controls {
-    gap: 8px;
-  }
-
-  .control-group {
-    padding: 8px 8px 10px;
-    gap: 8px;
-  }
-
-  .control-label {
-    font-size: 0.72rem;
-  }
-
-  .control-status {
-    font-size: 0.72rem;
-  }
-
-  #game-container {
-    border-radius: 10px;
-  }
+body.layout-tablet .control-group,
+body.layout-phone-portrait .control-group {
+  grid-template-columns: 1fr;
+  justify-items: center;
+  text-align: center;
 }
 
-@media (max-height: 620px) and (orientation: landscape) {
-  #game-shell {
-    padding: 6px 8px 8px;
-    gap: 6px;
-  }
-
-  #game-title {
-    font-size: 0.9rem;
-    letter-spacing: 0.1em;
-  }
-
-  #arcade-controls {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 6px;
-    width: 100%;
-  }
-
-  .control-group {
-    padding: 6px 8px;
-    grid-template-columns: 1fr;
-    justify-items: center;
-    text-align: center;
-    gap: 6px;
-  }
-
-  .control-group:nth-child(3) {
-    grid-column: 1 / -1;
-  }
-
-  .control-label {
-    font-size: 0.66rem;
-  }
-
-  .control-buttons {
-    gap: 6px;
-    flex-wrap: nowrap;
-    justify-content: center;
-  }
-
-  .control-status {
-    display: none;
-  }
-
-  .side-button,
-  .ai-button,
-  .hand-button {
-    min-width: 72px;
-    min-height: 30px;
-    font-size: 0.68rem;
-    padding: 0 8px;
-  }
+body.layout-tablet .control-status,
+body.layout-phone-portrait .control-status {
+  text-align: center;
 }
 
+body.layout-phone-landscape #game-shell {
+  padding: 6px 8px 8px;
+  gap: 6px;
+}
+
+body.layout-phone-landscape #game-title {
+  font-size: 0.9rem;
+  letter-spacing: 0.1em;
+}
+
+body.layout-phone-landscape #arcade-controls {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  width: 100%;
+}
+
+body.layout-phone-landscape .control-group {
+  padding: 6px 8px;
+  grid-template-columns: 1fr;
+  justify-items: center;
+  text-align: center;
+  gap: 6px;
+}
+
+body.layout-phone-landscape .control-group:nth-child(3) {
+  grid-column: 1 / -1;
+}
+
+body.layout-phone-landscape .control-label {
+  font-size: 0.66rem;
+}
+
+body.layout-phone-landscape .control-buttons {
+  gap: 6px;
+  flex-wrap: nowrap;
+  justify-content: center;
+}
+
+body.layout-phone-landscape .control-status {
+  display: none;
+}
+
+body.layout-phone-landscape .side-button,
+body.layout-phone-landscape .ai-button,
+body.layout-phone-landscape .hand-button {
+  min-width: 72px;
+  min-height: 30px;
+  font-size: 0.68rem;
+  padding: 0 8px;
+}
+
+/* Smaller touch visuals only */
 @media (max-width: 700px) {
   #touch-pad {
     width: 120px;

@@ -655,6 +655,37 @@ function createHeroGoalOverlay() {
   centerOverlayPulse2.setDepth(999);
 }
 
+function updateLayoutMode() {
+  const viewport = window.visualViewport;
+  const width = viewport ? viewport.width : window.innerWidth;
+  const height = viewport ? viewport.height : window.innerHeight;
+  const isPortrait = height > width;
+
+  document.body.classList.remove(
+    'layout-desktop',
+    'layout-tablet',
+    'layout-phone-landscape',
+    'layout-phone-portrait'
+  );
+
+  if (touchDevice && isPortrait && width <= 900) {
+    document.body.classList.add('layout-phone-portrait');
+    return;
+  }
+
+  if (width <= 900 && !isPortrait) {
+    document.body.classList.add('layout-phone-landscape');
+    return;
+  }
+
+  if (width <= 1220) {
+    document.body.classList.add('layout-tablet');
+    return;
+  }
+
+  document.body.classList.add('layout-desktop');
+}
+
 function initStageAutoFit() {
   gameShellEl = document.getElementById('game-shell');
   gameTitleEl = document.getElementById('game-title');
@@ -665,15 +696,28 @@ function initStageAutoFit() {
   window.addEventListener('resize', applyStageAutoFit);
   window.addEventListener('orientationchange', applyStageAutoFit);
 
-  requestAnimationFrame(applyStageAutoFit);
-  setTimeout(applyStageAutoFit, 50);
-  setTimeout(applyStageAutoFit, 250);
+  requestAnimationFrame(() => {
+    updateLayoutMode();
+    applyStageAutoFit();
+  });
+
+  setTimeout(() => {
+    updateLayoutMode();
+    applyStageAutoFit();
+  }, 50);
+
+  setTimeout(() => {
+    updateLayoutMode();
+    applyStageAutoFit();
+  }, 250);
 }
 
 function applyStageAutoFit() {
   if (!gameShellEl || !gameTitleEl || !arcadeControlsEl || !gameStageEl || !gameContainerEl) {
     return;
   }
+
+  updateLayoutMode();
 
   const viewport = window.visualViewport;
   const viewportWidth = viewport ? viewport.width : window.innerWidth;
@@ -687,9 +731,25 @@ function applyStageAutoFit() {
   const titleHeight = gameTitleEl.offsetHeight || 0;
   const controlsHeight = arcadeControlsEl.offsetHeight || 0;
 
+  const isPhoneLandscape = document.body.classList.contains('layout-phone-landscape');
+  const isPhonePortrait = document.body.classList.contains('layout-phone-portrait');
+
+  let widthPadding = 8;
+  let heightReserve = 8;
+
+  if (isPhoneLandscape) {
+    widthPadding = 28;
+    heightReserve = 14;
+  }
+
+  if (isPhonePortrait) {
+    widthPadding = 12;
+    heightReserve = 14;
+  }
+
   const availableWidth = Math.max(
     260,
-    Math.min(gameShellEl.clientWidth, viewportWidth - 8)
+    Math.min(gameShellEl.clientWidth, viewportWidth - widthPadding)
   );
 
   const verticalUsed =
@@ -698,7 +758,7 @@ function applyStageAutoFit() {
     titleHeight +
     controlsHeight +
     shellGap * 3 +
-    8;
+    heightReserve;
 
   const availableHeight = Math.max(220, viewportHeight - verticalUsed);
   const aspectRatio = GAME_WIDTH / GAME_HEIGHT;
@@ -717,6 +777,7 @@ function applyStageAutoFit() {
   gameStageEl.style.width = `${stageWidth}px`;
   gameStageEl.style.height = `${stageHeight}px`;
 }
+
 
 function createInput() {
   const scene = sceneRef;
@@ -797,11 +858,11 @@ function initTouchUI() {
   updateOrientationState();
 }
 
-
 function updateOrientationState() {
   if (!touchDevice) {
     document.body.classList.remove('portrait-mode');
     document.body.classList.remove('landscape-mode');
+    updateLayoutMode();
     return;
   }
 
@@ -810,6 +871,7 @@ function updateOrientationState() {
   document.body.classList.toggle('portrait-mode', isPortrait);
   document.body.classList.toggle('landscape-mode', !isPortrait);
 
+  updateLayoutMode();
   setTimeout(applyStageAutoFit, 0);
 }
 
