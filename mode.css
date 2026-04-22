@@ -1,38 +1,62 @@
-/* =========================================================
-   Sprint A3 — Gamemode unify
-   Page-specific stylesheet
-   ========================================================= */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Orbitron:wght@500;700;800&display=swap');
 
-.body--mode {
+:root {
+  --bg-dark: #070b11;
+  --bg-deep: #0b1119;
+  --text: #f5f7fa;
+  --muted: #c7d1dc;
+  --accent: #f5a524;
+  --accent-soft: #ffcf66;
+  --teal: #5de6d9;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  width: 100%;
+  min-height: 100%;
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
+body {
   min-height: 100vh;
-  overflow: hidden;
+  color: var(--text);
+  font-family: "Inter", sans-serif;
   background:
     linear-gradient(180deg, rgba(8, 12, 18, 0.28) 0%, rgba(8, 12, 18, 0.86) 100%),
     url("assets/webflow/landing/landing_bg_01.png") center center / cover no-repeat fixed;
 }
 
+a,
+a:visited {
+  color: inherit;
+  text-decoration: none;
+}
+
+.body--mode {
+  min-height: 100vh;
+}
+
 .mode-page-shell {
-  width: 100vw;
+  width: 100%;
   min-height: 100vh;
   margin: 0;
   padding: 0;
-  display: block;
 }
 
 .mode-panel {
-  width: 100vw;
+  position: relative;
+  width: 100%;
   min-height: 100vh;
-  height: 100vh;
-  border: none;
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
   padding: 42px 24px 72px;
-}
-
-.mode-panel::before,
-.mode-panel::after {
-  display: none;
+  overflow: hidden;
+  background: transparent;
 }
 
 .mode-overlay {
@@ -109,20 +133,9 @@
   opacity: 0.28;
 }
 
-.mode-scorebar--1 {
-  top: 16%;
-  animation: modeBroadcastBar1 16s linear infinite;
-}
-
-.mode-scorebar--2 {
-  top: 23%;
-  animation: modeBroadcastBar2 20s linear infinite;
-}
-
-.mode-scorebar--3 {
-  top: 80%;
-  animation: modeBroadcastBar3 18s linear infinite;
-}
+.mode-scorebar--1 { top: 16%; animation: modeBroadcastBar1 16s linear infinite; }
+.mode-scorebar--2 { top: 23%; animation: modeBroadcastBar2 20s linear infinite; }
+.mode-scorebar--3 { top: 80%; animation: modeBroadcastBar3 18s linear infinite; }
 
 .mode-shell {
   width: 100%;
@@ -191,23 +204,19 @@
 
 .mode-subtitle {
   max-width: 720px;
-  font-family: "Inter", sans-serif;
   font-size: clamp(0.98rem, 1.18vw, 1.12rem);
   font-weight: 500;
   line-height: 1.42;
   color: #f4f7fb;
-  margin: 0;
 }
 
 .mode-support {
-  font-family: "Inter", sans-serif;
   font-size: 0.88rem;
   font-weight: 600;
   line-height: 1.34;
   letter-spacing: 0.06em;
   color: #ffcf66;
   text-transform: uppercase;
-  margin: 0;
   text-shadow: 0 0 10px rgba(245, 165, 36, 0.1);
 }
 
@@ -329,7 +338,6 @@
 
 .mode-format-body {
   max-width: 28ch;
-  font-family: "Inter", sans-serif;
   font-size: 0.96rem;
   font-weight: 500;
   line-height: 1.5;
@@ -365,12 +373,67 @@
 }
 
 .mode-back-button {
+  position: relative;
   min-width: 190px;
   min-height: 56px;
-  border-width: 2px;
+  padding: 0 20px;
+  border-radius: 14px;
+  border: 2px solid rgba(245, 165, 36, 0.72);
+  background:
+    linear-gradient(
+      180deg,
+      rgba(152, 161, 174, 0.92) 0%,
+      rgba(77, 86, 99, 0.94) 18%,
+      rgba(39, 45, 54, 0.98) 48%,
+      rgba(15, 18, 24, 1) 100%
+    );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.44),
+    inset 0 10px 12px rgba(255, 255, 255, 0.07),
+    inset 0 -10px 14px rgba(0, 0, 0, 0.36),
+    0 14px 24px rgba(0, 0, 0, 0.24),
+    0 0 14px rgba(245, 165, 36, 0.12);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Orbitron", sans-serif;
+  font-size: 0.86rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  overflow: hidden;
+  isolation: isolate;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    border-color 0.18s ease,
+    filter 0.18s ease;
+}
+
+.mode-back-button:hover {
+  transform: translateY(-3px) scale(1.03);
+  border-color: rgba(255, 193, 92, 0.84);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.52),
+    inset 0 10px 12px rgba(255, 255, 255, 0.1),
+    inset 0 -10px 14px rgba(0, 0, 0, 0.4),
+    0 18px 28px rgba(0, 0, 0, 0.26),
+    0 0 20px rgba(245, 165, 36, 0.18);
+}
+
+.mode-back-button-label {
+  position: relative;
+  z-index: 3;
+  color: #fff5d8;
 }
 
 .mode-back-button .button-signal {
+  position: absolute;
+  left: 16%;
+  right: 16%;
+  bottom: 9px;
+  height: 2px;
+  border-radius: 999px;
   background: linear-gradient(
     90deg,
     rgba(255, 191, 86, 0),
@@ -378,6 +441,23 @@
     rgba(255, 191, 86, 0)
   );
   opacity: 0.9;
+  z-index: 3;
+  transition:
+    transform 0.22s ease,
+    box-shadow 0.22s ease,
+    opacity 0.22s ease;
+}
+
+.mode-back-button:hover .button-signal {
+  transform: scaleY(2.1);
+  box-shadow:
+    0 0 12px rgba(255, 191, 86, 0.28),
+    0 0 20px rgba(255, 191, 86, 0.1);
+  opacity: 1;
+}
+
+.mode-back-button.is-fired {
+  animation: modeButtonFire 0.36s ease-out;
 }
 
 .mode-broadcast-bar {
@@ -551,7 +631,6 @@
   height: 100%;
   padding-right: 14px;
   color: #f8dfaa;
-  font-family: "Inter", sans-serif;
   font-size: 0.94rem;
   font-weight: 700;
   line-height: 1;
@@ -593,21 +672,10 @@
 }
 
 @keyframes modeBroadcastSweep {
-  0% {
-    left: -42%;
-    opacity: 0;
-  }
-  12% {
-    opacity: 1;
-  }
-  46% {
-    left: 20%;
-    opacity: 0.68;
-  }
-  100% {
-    left: 120%;
-    opacity: 0;
-  }
+  0% { left: -42%; opacity: 0; }
+  12% { opacity: 1; }
+  46% { left: 20%; opacity: 0.68; }
+  100% { left: 120%; opacity: 0; }
 }
 
 @keyframes modeBroadcastPulse {
@@ -654,12 +722,8 @@
 }
 
 @keyframes modeFeedMarquee {
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(-50%);
-  }
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
 }
 
 @keyframes modeTickerEdgePulse {
@@ -677,102 +741,4 @@
   0% { transform: scale(1); }
   35% { transform: scale(0.97); }
   100% { transform: scale(1); }
-}
-
-@media (max-width: 1100px) {
-  .mode-panel {
-    padding: 38px 18px 70px;
-  }
-
-  .mode-format-grid {
-    grid-template-columns: 1fr;
-    max-width: 760px;
-  }
-
-  .mode-broadcast-bar {
-    height: 56px;
-    grid-template-columns: 150px 240px minmax(0, 1fr);
-  }
-
-  .mode-live-text {
-    font-size: 0.96rem;
-  }
-
-  .mode-status-label {
-    font-size: 0.7rem;
-  }
-
-  .mode-status-state {
-    font-size: 1.04rem;
-  }
-
-  .mode-feed-track {
-    font-size: 0.86rem;
-  }
-}
-
-@media (max-width: 760px) {
-  .mode-panel {
-    padding: 34px 14px 64px;
-  }
-
-  .mode-shell {
-    min-height: calc(100vh - 124px);
-    padding-top: 18px;
-  }
-
-  .mode-kicker {
-    font-size: 0.66rem;
-    letter-spacing: 0.2em;
-  }
-
-  .mode-title {
-    font-size: clamp(2.9rem, 9vw, 4.2rem);
-    letter-spacing: 0.1em;
-  }
-
-  .mode-subtitle {
-    max-width: 94%;
-    font-size: 0.9rem;
-  }
-
-  .mode-support {
-    font-size: 0.8rem;
-  }
-
-  .mode-format-button {
-    min-height: 206px;
-  }
-
-  .mode-broadcast-bar {
-    height: 52px;
-    grid-template-columns: 118px 190px minmax(0, 1fr);
-  }
-
-  .mode-live-text {
-    font-size: 0.86rem;
-  }
-
-  .mode-status-label {
-    font-size: 0.64rem;
-  }
-
-  .mode-status-state {
-    font-size: 0.96rem;
-  }
-
-  .mode-feed-track {
-    font-size: 0.78rem;
-    gap: 12px;
-  }
-
-  .mode-feed-tag {
-    min-height: 24px;
-    padding: 0 10px;
-    font-size: 0.66rem;
-  }
-
-  .mode-back-button {
-    min-width: 170px;
-  }
 }

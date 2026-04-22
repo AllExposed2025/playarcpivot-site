@@ -1,0 +1,166 @@
+@media (max-width: 1100px) {
+  .mode-panel {
+    padding: 38px 18px 70px;
+  }
+
+  .mode-format-grid {
+    grid-template-columns: 1fr;
+    max-width: 760px;
+  }
+
+  .mode-broadcast-bar {
+    height: 56px;
+    grid-template-columns: 150px 240px minmax(0, 1fr);
+  }
+
+  .mode-live-text {
+    font-size: 0.96rem;
+  }
+
+  .mode-status-label {
+    font-size: 0.7rem;
+  }
+
+  .mode-status-state {
+    font-size: 1.04rem;
+  }
+
+  .mode-feed-track {
+    font-size: 0.86rem;
+  }
+}
+
+@media (max-width: 760px) {
+  body {
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  .mode-panel {
+    padding: 34px 14px 64px;
+  }
+
+  .mode-shell {
+    min-height: calc(100vh - 124px);
+    padding-top: 18px;
+  }
+
+  .mode-kicker {
+    font-size: 0.66rem;
+    letter-spacing: 0.2em;
+  }
+
+  .mode-title {
+    font-size: clamp(2.9rem, 9vw, 4.2rem);
+    letter-spacing: 0.1em;
+  }
+
+  .mode-subtitle {
+    max-width: 94%;
+    font-size: 0.9rem;
+  }
+
+  .mode-support {
+    font-size: 0.8rem;
+  }
+
+  .mode-format-button {
+    min-height: 206px;
+  }
+
+  .mode-broadcast-bar {
+    height: 52px;
+    grid-template-columns: 118px 190px minmax(0, 1fr);
+  }
+
+  .mode-live-text {
+    font-size: 0.86rem;
+  }
+
+  .mode-status-label {
+    font-size: 0.64rem;
+  }
+
+  .mode-status-state {
+    font-size: 0.96rem;
+  }
+
+  .mode-feed-track {
+    font-size: 0.78rem;
+    gap: 12px;
+  }
+
+  .mode-feed-tag {
+    min-height: 24px;
+    padding: 0 10px;
+    font-size: 0.66rem;
+  }
+
+  .mode-back-button {
+    min-width: 170px;
+  }
+}
+
+@media (max-width: 480px) {
+  .mode-panel {
+    padding: 26px 10px 58px;
+  }
+
+  .mode-kicker {
+    font-size: 0.58rem;
+    letter-spacing: 0.14em;
+  }
+
+  .mode-title {
+    font-size: clamp(2.3rem, 8vw, 3.2rem);
+  }
+
+  .mode-subtitle {
+    font-size: 0.82rem;
+  }
+
+  .mode-support {
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+  }
+
+  .mode-format-button {
+    min-height: 186px;
+    padding: 14px 12px 12px;
+  }
+
+  .mode-format-title {
+    font-size: 0.92rem;
+  }
+
+  .mode-format-body {
+    font-size: 0.84rem;
+  }
+
+  .mode-format-status {
+    font-size: 0.64rem;
+    min-height: 24px;
+  }
+
+  .mode-broadcast-bar {
+    grid-template-columns: auto auto 1fr;
+    gap: 8px;
+    padding: 0 8px;
+  }
+
+  .mode-live-text {
+    font-size: 0.74rem;
+  }
+
+  .mode-status-label {
+    font-size: 0.58rem;
+  }
+
+  .mode-status-state {
+    font-size: 0.82rem;
+  }
+
+  .mode-feed-tag {
+    display: none;
+  }
+}
