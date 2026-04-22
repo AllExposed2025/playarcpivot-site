@@ -90,7 +90,7 @@
 
   .landing-panel {
     min-height: 100vh;
-    padding: 30px 14px 72px;
+    padding: 20px 8px 60px;
   }
 
   .landing-shell {
@@ -99,146 +99,9 @@
   }
 
   .landing-hero {
-    margin-top: 6px;
-    margin-bottom: 18px;
-  }
-
-  .landing-kicker {
-    font-size: 0.68rem;
-    letter-spacing: 0.2em;
-  }
-
-  .landing-title {
-    font-size: clamp(2.9rem, 10vw, 4.2rem);
-    letter-spacing: 0.1em;
-  }
-
-  .landing-subtitle {
-    max-width: 94%;
-    font-size: 0.9rem;
-  }
-
-  .landing-support {
-    font-size: 0.8rem;
-  }
-
-  .landing-live-grid {
-    gap: 14px;
-  }
-
-  .live-stack {
-    padding: 14px 12px 12px;
-  }
-
-  .stack-header {
-    font-size: 0.8rem;
-  }
-
-  .stack-item {
-    grid-template-columns: 10px 1fr auto;
+    margin-top: 2px;
+    margin-bottom: 12px;
     gap: 6px;
-    min-height: 48px;
-    padding: 0 10px;
-  }
-
-  .stack-key {
-    font-size: 0.74rem;
-  }
-
-  .stack-value {
-    font-size: 0.72rem;
-  }
-
-  .broadcast-module {
-    min-height: 138px;
-    padding: 16px 14px 14px;
-  }
-
-  .module-title {
-    font-size: 0.84rem;
-  }
-
-  .module-body {
-    font-size: 0.86rem;
-  }
-
-  .command-deck {
-    padding: 18px 16px 20px;
-  }
-
-  .command-deck-headline {
-    font-size: 0.88rem;
-  }
-
-  .command-deck-copy {
-    font-size: 0.88rem;
-  }
-
-  .landing-action-row {
-    gap: 14px;
-  }
-
-  .landing-action-row .landing-button {
-    width: 100%;
-    min-height: 60px;
-  }
-
-  .floor-focus {
-    min-height: 180px;
-  }
-
-  .floor-ring--outer {
-    width: 320px;
-    height: 110px;
-  }
-
-  .floor-ring--inner {
-    width: 240px;
-    height: 72px;
-  }
-
-  .floor-label {
-    font-size: 0.74rem;
-    text-align: center;
-  }
-
-  .floor-copy {
-    max-width: 300px;
-    font-size: 0.82rem;
-  }
-
-  .landing-broadcast-bar {
-    height: 52px;
-    grid-template-columns: 118px 190px minmax(0, 1fr);
-  }
-
-  .landing-live-text {
-    font-size: 0.88rem;
-  }
-
-  .landing-status-label {
-    font-size: 0.66rem;
-  }
-
-  .landing-status-time {
-    font-size: 1rem;
-  }
-
-  .landing-feed-track {
-    font-size: 0.78rem;
-    gap: 12px;
-  }
-
-  .landing-feed-tag {
-    min-height: 24px;
-    padding: 0 10px;
-    font-size: 0.68rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .landing-panel {
-    padding: 24px 10px 68px;
   }
 
   .landing-kicker {
@@ -246,31 +109,218 @@
     letter-spacing: 0.16em;
   }
 
+  .landing-title {
+    font-size: clamp(2.35rem, 8vw, 3.4rem);
+    letter-spacing: 0.08em;
+  }
+
   .landing-subtitle {
-    font-size: 0.84rem;
+    max-width: 96%;
+    font-size: 0.82rem;
+    line-height: 1.34;
   }
 
   .landing-support {
     font-size: 0.72rem;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.04em;
+  }
+
+  .landing-live-grid {
+    gap: 10px;
+  }
+
+  .live-stack {
+    padding: 10px 10px 10px;
+  }
+
+  .stack-header {
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
   }
 
   .stack-item {
-    min-height: 44px;
+    grid-template-columns: 9px 1fr auto;
+    gap: 6px;
+    min-height: 40px;
+    margin-bottom: 8px;
+    padding: 0 8px;
+  }
+
+  .stack-key {
+    font-size: 0.68rem;
+  }
+
+  .stack-value {
+    font-size: 0.64rem;
+  }
+
+  .broadcast-module {
+    min-height: 118px;
+    padding: 12px 12px 12px;
+  }
+
+  .module-kicker {
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    font-size: 0.64rem;
+  }
+
+  .module-title {
+    font-size: 0.76rem;
+  }
+
+  .module-body {
+    margin-top: 8px;
+    font-size: 0.78rem;
+    line-height: 1.36;
+  }
+
+  .command-deck {
+    padding: 14px 12px 16px;
+  }
+
+  .command-deck-headline {
+    font-size: 0.8rem;
+    letter-spacing: 0.1em;
+  }
+
+  .command-deck-copy {
+    margin-top: 8px;
+    font-size: 0.8rem;
+    line-height: 1.34;
+  }
+
+  .landing-action-row {
+    gap: 10px;
+    margin-top: 14px;
+  }
+
+  .landing-action-row .landing-button {
+    width: 100%;
+    min-height: 54px;
+    min-width: 100%;
+    font-size: 0.84rem;
+  }
+
+  .floor-focus {
+    min-height: 130px;
+  }
+
+  .floor-ring--outer {
+    width: 260px;
+    height: 88px;
+  }
+
+  .floor-ring--inner {
+    width: 190px;
+    height: 56px;
+  }
+
+  .floor-label {
+    font-size: 0.66rem;
+    text-align: center;
+    letter-spacing: 0.08em;
+  }
+
+  .floor-copy {
+    max-width: 260px;
+    font-size: 0.72rem;
+    line-height: 1.28;
+  }
+
+  .landing-broadcast-bar {
+    height: 46px;
+    grid-template-columns: 96px 140px minmax(0, 1fr);
+  }
+
+  .landing-live-text {
+    font-size: 0.76rem;
+  }
+
+  .landing-status-label {
+    font-size: 0.58rem;
+  }
+
+  .landing-status-time {
+    font-size: 0.88rem;
+  }
+
+  .landing-feed-track {
+    font-size: 0.72rem;
+    gap: 10px;
+  }
+
+  .landing-feed-tag {
+    min-height: 20px;
+    padding: 0 8px;
+    font-size: 0.62rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .landing-panel {
+    padding: 16px 6px 58px;
+  }
+
+  .landing-hero {
+    margin-bottom: 10px;
+  }
+
+  .landing-kicker {
+    font-size: 0.56rem;
+    letter-spacing: 0.12em;
+  }
+
+  .landing-title {
+    font-size: clamp(2.05rem, 8vw, 2.8rem);
+  }
+
+  .landing-subtitle {
+    font-size: 0.76rem;
+    line-height: 1.28;
+  }
+
+  .landing-support {
+    font-size: 0.66rem;
+    letter-spacing: 0.03em;
+  }
+
+  .live-stack {
+    padding: 8px 8px 8px;
+  }
+
+  .stack-item {
+    min-height: 38px;
+  }
+
+  .broadcast-module {
+    min-height: 108px;
+    padding: 10px 10px 10px;
+  }
+
+  .command-deck {
+    padding: 12px 10px 14px;
   }
 
   .landing-broadcast-bar {
     grid-template-columns: auto auto 1fr;
-    gap: 8px;
-    padding: 0 8px;
+    gap: 6px;
+    padding: 0 6px;
   }
 
   .landing-status-time {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
   }
 
   .landing-live-text {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
+  }
+
+  .landing-feed-track {
+    font-size: 0.68rem;
+    gap: 8px;
   }
 
   .landing-feed-tag {
