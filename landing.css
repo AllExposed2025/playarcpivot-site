@@ -13,7 +13,6 @@
   --accent: #f5a524;
   --accent-soft: #ffcf66;
   --teal: #5de6d9;
-  --teal-soft: rgba(93, 230, 217, 0.24);
 }
 
 * {
@@ -26,19 +25,18 @@ html,
 body {
   width: 100%;
   min-height: 100%;
+  overflow-x: hidden;
+  max-width: 100%;
 }
-
 
 body {
   min-height: 100vh;
-  overflow-x: hidden;
   color: var(--text);
   font-family: "Inter", sans-serif;
   background:
     linear-gradient(180deg, rgba(8, 12, 18, 0.16) 0%, rgba(8, 12, 18, 0.72) 100%),
     url("assets/webflow/landing/landing_bg_01.png") center center / cover no-repeat fixed;
 }
-
 
 a,
 a:visited {
@@ -51,22 +49,20 @@ a:visited {
 }
 
 .landing-page-shell {
-  width: 100vw;
+  width: 100%;
   min-height: 100vh;
   margin: 0;
   padding: 0;
 }
 
-
 .landing-panel {
   position: relative;
-  width: 100vw;
+  width: 100%;
   min-height: 100vh;
   padding: 38px 24px 74px;
   overflow: hidden;
   background: transparent;
 }
-
 
 .landing-overlay {
   position: absolute;
@@ -242,7 +238,6 @@ a:visited {
   align-items: start;
 }
 
-/* Panel system */
 .live-stack,
 .broadcast-module,
 .command-deck {
@@ -291,7 +286,7 @@ a:visited {
   pointer-events: none;
 }
 
-.live-stack .stack-header {
+.stack-header {
   position: relative;
   margin-bottom: 14px;
   padding: 0 8px 12px;
@@ -304,7 +299,7 @@ a:visited {
   text-align: center;
 }
 
-.live-stack .stack-header::after {
+.stack-header::after {
   content: "";
   position: absolute;
   left: 18px;
@@ -771,11 +766,7 @@ a:visited {
     inset 0 0 18px rgba(245, 165, 36, 0.04);
 }
 
-.floor-ring--outer {
-  width: 520px;
-  height: 160px;
-}
-
+.floor-ring--outer { width: 520px; height: 160px; }
 .floor-ring--inner {
   width: 400px;
   height: 110px;
@@ -849,10 +840,7 @@ a:visited {
 
 .landing-live-module,
 .landing-status-module,
-.landing-feed-window {
-  display: flex;
-  align-items: center;
-}
+.landing-feed-window { display: flex; align-items: center; }
 
 .landing-live-module {
   position: relative;
@@ -1023,134 +1011,6 @@ a:visited {
   text-transform: uppercase;
 }
 
-@media (max-width: 1320px) {
-  .landing-live-grid {
-    grid-template-columns: 250px minmax(0, 1fr) 250px;
-    gap: 18px;
-  }
-
-  .landing-button { min-width: 232px; }
-  .floor-ring--outer { width: 470px; }
-  .floor-ring--inner { width: 360px; }
-}
-
-@media (max-width: 1180px) {
-  .landing-panel {
-    padding: 34px 18px 70px;
-  }
-
-  .landing-shell {
-    min-height: calc(100vh - 126px);
-    padding-top: 10px;
-  }
-
-  .landing-live-grid {
-    grid-template-columns: 1fr;
-    gap: 18px;
-  }
-
-  .broadcast-modules-row {
-    grid-template-columns: 1fr;
-  }
-
-  .live-stack {
-    max-width: 760px;
-    width: 100%;
-    margin: 0 auto;
-  }
-
-  .landing-center-stage {
-    width: 100%;
-  }
-
-  .command-deck {
-    width: min(100%, 820px);
-  }
-
-  .floor-focus {
-    width: min(100%, 760px);
-  }
-
-  .landing-broadcast-bar {
-    height: 58px;
-    grid-template-columns: 160px 250px minmax(0, 1fr);
-  }
-
-  .landing-live-text { font-size: 1rem; }
-  .landing-status-label { font-size: 0.74rem; }
-  .landing-status-time { font-size: 1.18rem; }
-  .landing-feed-track { font-size: 0.88rem; }
-}
-
-@media (max-width: 760px) {
-
-body {
-  overflow-x: hidden;
-  overflow-y: auto;
-}
-
-  .landing-panel {
-    height: auto;
-    min-height: 100vh;
-    padding: 30px 14px 72px;
-  }
-
-  .landing-shell {
-    min-height: auto;
-    padding-top: 0;
-  }
-
-  .landing-hero {
-    margin-top: 6px;
-    margin-bottom: 18px;
-  }
-
-  .landing-kicker {
-    font-size: 0.68rem;
-    letter-spacing: 0.2em;
-  }
-
-  .landing-title {
-    font-size: clamp(2.9rem, 10vw, 4.2rem);
-    letter-spacing: 0.1em;
-  }
-
-  .landing-subtitle {
-    max-width: 94%;
-    font-size: 0.9rem;
-  }
-
-  .landing-support { font-size: 0.8rem; }
-  .landing-live-grid { gap: 14px; }
-  .live-stack { padding: 14px 12px 12px; }
-  .stack-header { font-size: 0.8rem; }
-  .stack-item { min-height: 48px; padding: 0 10px; }
-  .stack-key { font-size: 0.74rem; }
-  .stack-value { font-size: 0.72rem; }
-  .broadcast-module { min-height: 138px; padding: 16px 14px 14px; }
-  .module-title { font-size: 0.84rem; }
-  .module-body { font-size: 0.86rem; }
-  .command-deck { padding: 18px 16px 20px; }
-  .command-deck-headline { font-size: 0.88rem; }
-  .command-deck-copy { font-size: 0.88rem; }
-  .landing-action-row { gap: 14px; }
-  .landing-action-row .landing-button { width: 100%; min-height: 60px; }
-  .floor-focus { min-height: 180px; }
-  .floor-ring--outer { width: 320px; height: 110px; }
-  .floor-ring--inner { width: 240px; height: 72px; }
-  .floor-label { font-size: 0.74rem; text-align: center; }
-  .floor-copy { font-size: 0.82rem; max-width: 300px; }
-  .landing-broadcast-bar {
-    height: 52px;
-    grid-template-columns: 118px 190px minmax(0, 1fr);
-  }
-  .landing-live-text { font-size: 0.88rem; }
-  .landing-status-label { font-size: 0.66rem; }
-  .landing-status-time { font-size: 1rem; }
-  .landing-feed-track { font-size: 0.78rem; gap: 12px; }
-  .landing-feed-tag { min-height: 24px; padding: 0 10px; font-size: 0.68rem; }
-}
-
 @keyframes landingSweep {
   0% { left: -42%; opacity: 0; }
   12% { opacity: 1; }
@@ -1190,6 +1050,28 @@ body {
   100% { left: 112%; opacity: 0; }
 }
 
+@keyframes livePulse {
+  0%, 100% {
+    transform: scale(0.92);
+    opacity: 0.72;
+  }
+  50% {
+    transform: scale(1.12);
+    opacity: 1;
+  }
+}
+
+@keyframes ledPulse {
+  0%, 100% {
+    transform: scale(0.92);
+    opacity: 0.72;
+  }
+  50% {
+    transform: scale(1.18);
+    opacity: 1;
+  }
+}
+
 @keyframes cardShimmer {
   0% { left: -45%; opacity: 0; }
   10% { opacity: 1; }
@@ -1203,13 +1085,13 @@ body {
   100% { transform: scale(1); }
 }
 
-@keyframes livePulse {
+@keyframes floorPulse {
   0%, 100% {
-    transform: scale(0.92);
+    transform: scale(0.98);
     opacity: 0.72;
   }
   50% {
-    transform: scale(1.12);
+    transform: scale(1.03);
     opacity: 1;
   }
 }
@@ -1227,27 +1109,5 @@ body {
   50% {
     opacity: 1;
     filter: brightness(1.28);
-  }
-}
-
-@keyframes ledPulse {
-  0%, 100% {
-    transform: scale(0.92);
-    opacity: 0.72;
-  }
-  50% {
-    transform: scale(1.18);
-    opacity: 1;
-  }
-}
-
-@keyframes floorPulse {
-  0%, 100% {
-    transform: scale(0.98);
-    opacity: 0.72;
-  }
-  50% {
-    transform: scale(1.03);
-    opacity: 1;
   }
 }
