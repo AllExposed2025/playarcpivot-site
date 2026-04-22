@@ -31,7 +31,7 @@ body {
   width: min(1400px, 100vw);
   min-height: 100dvh;
   margin: 0 auto;
-  padding: 12px 10px 12px;
+  padding: 10px 8px 10px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -41,11 +41,12 @@ body {
 
 #game-title {
   color: var(--primary);
-  font-size: clamp(1rem, 2.6vw, 2rem);
-  letter-spacing: 0.16em;
+  font-size: clamp(1rem, 2.3vw, 2rem);
+  letter-spacing: 0.14em;
   margin-bottom: 0;
   text-shadow: 0 0 14px rgba(245, 165, 36, 0.4);
   text-align: center;
+  line-height: 1.1;
 }
 
 #arcade-controls {
@@ -53,11 +54,11 @@ body {
   margin: 0 auto;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
+  gap: 8px;
 }
 
 .control-group {
-  padding: 8px 10px 10px;
+  padding: 8px 10px;
   border: 1px solid var(--line);
   border-radius: 12px;
   background:
@@ -67,14 +68,14 @@ body {
     0 0 18px rgba(245, 165, 36, 0.08);
   display: grid;
   grid-template-columns: auto 1fr auto;
-  gap: 10px;
+  gap: 8px;
   align-items: center;
 }
 
 .control-label {
   color: var(--primary);
-  font-size: 0.78rem;
-  letter-spacing: 0.07em;
+  font-size: 0.74rem;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   font-weight: 700;
   white-space: nowrap;
@@ -83,26 +84,26 @@ body {
 .control-buttons {
   display: flex;
   justify-content: center;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
 .control-status {
   color: #ffcf66;
-  font-size: 0.76rem;
+  font-size: 0.72rem;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
   white-space: normal;
-  line-height: 1.25;
+  line-height: 1.2;
   text-align: right;
 }
 
 .side-button,
 .ai-button,
 .hand-button {
-  min-width: 96px;
-  min-height: 36px;
+  min-width: 90px;
+  min-height: 34px;
   padding: 0 10px;
   border-radius: 10px;
   border: 1px solid rgba(245, 165, 36, 0.34);
@@ -115,7 +116,7 @@ body {
     );
   color: var(--text);
   font-family: "Courier New", monospace;
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   font-weight: 700;
   letter-spacing: 0.03em;
   cursor: pointer;
@@ -189,9 +190,9 @@ body.touch-device.landscape-mode #touch-overlay {
 
 #touch-pad {
   position: absolute;
-  bottom: max(18px, env(safe-area-inset-bottom, 0px));
-  width: 148px;
-  height: 148px;
+  bottom: max(14px, env(safe-area-inset-bottom, 0px));
+  width: 132px;
+  height: 132px;
   pointer-events: auto;
   touch-action: none;
   user-select: none;
@@ -199,11 +200,11 @@ body.touch-device.landscape-mode #touch-overlay {
 }
 
 #touch-pad.left-handed {
-  left: max(18px, env(safe-area-inset-left, 0px));
+  left: max(14px, env(safe-area-inset-left, 0px));
 }
 
 #touch-pad.right-handed {
-  right: max(18px, env(safe-area-inset-right, 0px));
+  right: max(14px, env(safe-area-inset-right, 0px));
 }
 
 #touch-pad-ring {
@@ -222,8 +223,8 @@ body.touch-device.landscape-mode #touch-overlay {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 58px;
-  height: 58px;
+  width: 48px;
+  height: 48px;
   transform: translate(-50%, -50%);
   border-radius: 50%;
   border: 2px solid rgba(245, 165, 36, 0.85);
@@ -295,7 +296,7 @@ body.touch-device.portrait-mode #rotate-overlay {
   }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 900px) and (orientation: portrait) {
   #game-shell {
     padding: 8px 6px 10px;
     gap: 6px;
@@ -328,14 +329,60 @@ body.touch-device.portrait-mode #rotate-overlay {
   }
 }
 
+@media (max-height: 620px) and (orientation: landscape) {
+  #game-shell {
+    padding: 6px 8px 8px;
+    gap: 6px;
+  }
+
+  #game-title {
+    font-size: 0.92rem;
+    letter-spacing: 0.12em;
+  }
+
+  #arcade-controls {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .control-group {
+    padding: 6px 8px;
+    grid-template-columns: auto 1fr auto;
+    gap: 6px;
+  }
+
+  .control-label {
+    font-size: 0.66rem;
+  }
+
+  .control-buttons {
+    gap: 6px;
+    flex-wrap: nowrap;
+  }
+
+  .control-status {
+    font-size: 0.64rem;
+    line-height: 1.15;
+  }
+
+  .side-button,
+  .ai-button,
+  .hand-button {
+    min-width: 72px;
+    min-height: 30px;
+    font-size: 0.68rem;
+    padding: 0 8px;
+  }
+}
+
 @media (max-width: 700px) {
   #touch-pad {
-    width: 132px;
-    height: 132px;
+    width: 120px;
+    height: 120px;
   }
 
   #touch-pad-thumb {
-    width: 48px;
-    height: 48px;
+    width: 44px;
+    height: 44px;
   }
 }

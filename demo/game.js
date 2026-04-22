@@ -670,13 +670,14 @@ function initStageAutoFit() {
   setTimeout(applyStageAutoFit, 250);
 }
 
-
 function applyStageAutoFit() {
   if (!gameShellEl || !gameTitleEl || !arcadeControlsEl || !gameStageEl || !gameContainerEl) {
     return;
   }
 
-  const viewportHeight = window.innerHeight;
+  const viewport = window.visualViewport;
+  const viewportWidth = viewport ? viewport.width : window.innerWidth;
+  const viewportHeight = viewport ? viewport.height : window.innerHeight;
 
   const shellStyles = window.getComputedStyle(gameShellEl);
   const shellPaddingTop = parseFloat(shellStyles.paddingTop) || 0;
@@ -686,7 +687,11 @@ function applyStageAutoFit() {
   const titleHeight = gameTitleEl.offsetHeight || 0;
   const controlsHeight = arcadeControlsEl.offsetHeight || 0;
 
-  const availableWidth = Math.max(260, gameShellEl.clientWidth);
+  const availableWidth = Math.max(
+    260,
+    Math.min(gameShellEl.clientWidth, viewportWidth - 8)
+  );
+
   const verticalUsed =
     shellPaddingTop +
     shellPaddingBottom +
@@ -712,49 +717,6 @@ function applyStageAutoFit() {
   gameStageEl.style.width = `${stageWidth}px`;
   gameStageEl.style.height = `${stageHeight}px`;
 }
-
-function applyStageAutoFit() {
-  if (!gameShellEl || !gameTitleEl || !arcadeControlsEl || !gameStageEl || !gameContainerEl) {
-    return;
-  }
-
-  const viewportHeight = window.innerHeight;
-
-  const shellStyles = window.getComputedStyle(gameShellEl);
-  const shellPaddingTop = parseFloat(shellStyles.paddingTop) || 0;
-  const shellPaddingBottom = parseFloat(shellStyles.paddingBottom) || 0;
-  const shellGap = parseFloat(shellStyles.gap) || 0;
-
-  const titleHeight = gameTitleEl.offsetHeight || 0;
-  const controlsHeight = arcadeControlsEl.offsetHeight || 0;
-
-  const availableWidth = Math.max(260, gameShellEl.clientWidth);
-  const verticalUsed =
-    shellPaddingTop +
-    shellPaddingBottom +
-    titleHeight +
-    controlsHeight +
-    shellGap * 3 +
-    8;
-
-  const availableHeight = Math.max(220, viewportHeight - verticalUsed);
-  const aspectRatio = GAME_WIDTH / GAME_HEIGHT;
-
-  let stageWidth = availableWidth;
-  let stageHeight = stageWidth / aspectRatio;
-
-  if (stageHeight > availableHeight) {
-    stageHeight = availableHeight;
-    stageWidth = stageHeight * aspectRatio;
-  }
-
-  stageWidth = Math.floor(stageWidth);
-  stageHeight = Math.floor(stageHeight);
-
-  gameStageEl.style.width = `${stageWidth}px`;
-  gameStageEl.style.height = `${stageHeight}px`;
-}
-
 
 function createInput() {
   const scene = sceneRef;
