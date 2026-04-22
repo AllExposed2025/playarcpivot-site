@@ -686,6 +686,37 @@ function updateLayoutMode() {
   document.body.classList.add('layout-desktop');
 }
 
+function updateLayoutMode() {
+  const viewport = window.visualViewport;
+  const width = viewport ? viewport.width : window.innerWidth;
+  const height = viewport ? viewport.height : window.innerHeight;
+  const isPortrait = height > width;
+
+  document.body.classList.remove(
+    'layout-desktop',
+    'layout-tablet',
+    'layout-phone-landscape',
+    'layout-phone-portrait'
+  );
+
+  if (touchDevice && isPortrait && width <= 900) {
+    document.body.classList.add('layout-phone-portrait');
+    return;
+  }
+
+  if (width <= 900 && !isPortrait) {
+    document.body.classList.add('layout-phone-landscape');
+    return;
+  }
+
+  if (width <= 1220) {
+    document.body.classList.add('layout-tablet');
+    return;
+  }
+
+  document.body.classList.add('layout-desktop');
+}
+
 function initStageAutoFit() {
   gameShellEl = document.getElementById('game-shell');
   gameTitleEl = document.getElementById('game-title');
@@ -730,38 +761,52 @@ function applyStageAutoFit() {
 
   const titleHeight = gameTitleEl.offsetHeight || 0;
   const controlsHeight = arcadeControlsEl.offsetHeight || 0;
+  const controlsWidth = arcadeControlsEl.offsetWidth || 0;
 
   const isPhoneLandscape = document.body.classList.contains('layout-phone-landscape');
   const isPhonePortrait = document.body.classList.contains('layout-phone-portrait');
 
-  let widthPadding = 8;
-  let heightReserve = 8;
+  const aspectRatio = GAME_WIDTH / GAME_HEIGHT;
+
+  let availableWidth = viewportWidth;
+  let availableHeight = viewportHeight;
 
   if (isPhoneLandscape) {
-    widthPadding = 28;
-    heightReserve = 14;
+    const horizontalUsed =
+      controlsWidth +
+      shellPaddingTop +
+      shellPaddingBottom +
+      shellGap * 2 +
+      14;
+
+    const verticalUsed =
+      shellPaddingTop +
+      shellPaddingBottom +
+      titleHeight +
+      shellGap * 2 +
+      8;
+
+    availableWidth = Math.max(220, viewportWidth - horizontalUsed);
+    availableHeight = Math.max(180, viewportHeight - verticalUsed);
+  } else {
+    const widthPadding = isPhonePortrait ? 12 : 8;
+    const heightReserve = isPhonePortrait ? 14 : 8;
+
+    availableWidth = Math.max(
+      260,
+      Math.min(gameShellEl.clientWidth, viewportWidth - widthPadding)
+    );
+
+    const verticalUsed =
+      shellPaddingTop +
+      shellPaddingBottom +
+      titleHeight +
+      controlsHeight +
+      shellGap * 3 +
+      heightReserve;
+
+    availableHeight = Math.max(220, viewportHeight - verticalUsed);
   }
-
-  if (isPhonePortrait) {
-    widthPadding = 12;
-    heightReserve = 14;
-  }
-
-  const availableWidth = Math.max(
-    260,
-    Math.min(gameShellEl.clientWidth, viewportWidth - widthPadding)
-  );
-
-  const verticalUsed =
-    shellPaddingTop +
-    shellPaddingBottom +
-    titleHeight +
-    controlsHeight +
-    shellGap * 3 +
-    heightReserve;
-
-  const availableHeight = Math.max(220, viewportHeight - verticalUsed);
-  const aspectRatio = GAME_WIDTH / GAME_HEIGHT;
 
   let stageWidth = availableWidth;
   let stageHeight = stageWidth / aspectRatio;
@@ -777,7 +822,6 @@ function applyStageAutoFit() {
   gameStageEl.style.width = `${stageWidth}px`;
   gameStageEl.style.height = `${stageHeight}px`;
 }
-
 
 function createInput() {
   const scene = sceneRef;

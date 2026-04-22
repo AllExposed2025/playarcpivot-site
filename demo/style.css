@@ -298,20 +298,36 @@ body.layout-phone-portrait .control-status {
   text-align: center;
 }
 
+/* Phone landscape gets a dedicated gameplay shell */
 body.layout-phone-landscape #game-shell {
+  width: 100vw;
+  max-width: 100vw;
+  min-height: 100dvh;
   padding: 6px 8px 8px;
   gap: 6px;
+  display: grid;
+  grid-template-columns: 248px minmax(0, 1fr);
+  grid-template-rows: auto 1fr;
+  align-items: start;
+  justify-content: stretch;
 }
 
 body.layout-phone-landscape #game-title {
+  grid-column: 1 / -1;
   font-size: 0.9rem;
   letter-spacing: 0.1em;
+  text-align: center;
 }
 
 body.layout-phone-landscape #arcade-controls {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-column: 1;
+  grid-row: 2;
+  width: 248px;
+  margin: 0;
+  display: grid;
+  grid-template-columns: 1fr;
   gap: 6px;
-  width: 100%;
+  align-self: start;
 }
 
 body.layout-phone-landscape .control-group {
@@ -320,10 +336,6 @@ body.layout-phone-landscape .control-group {
   justify-items: center;
   text-align: center;
   gap: 6px;
-}
-
-body.layout-phone-landscape .control-group:nth-child(3) {
-  grid-column: 1 / -1;
 }
 
 body.layout-phone-landscape .control-label {
@@ -347,6 +359,16 @@ body.layout-phone-landscape .hand-button {
   min-height: 30px;
   font-size: 0.68rem;
   padding: 0 8px;
+}
+
+body.layout-phone-landscape #game-stage {
+  grid-column: 2;
+  grid-row: 2;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  justify-self: stretch;
+  align-self: stretch;
 }
 
 /* Smaller touch visuals only */
