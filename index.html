@@ -4,123 +4,193 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ArcPivot — Landing</title>
-  <link rel="stylesheet" href="flow.css" />
+  <link rel="stylesheet" href="landing.css" />
 </head>
 <body class="body--landing">
-  <div class="page-shell landing-page-shell">
-    <div class="top-mark">ARCPIVOT</div>
-
-    <main class="panel landing-panel">
+  <div class="landing-page-shell">
+    <main class="landing-panel">
       <div class="landing-overlay"></div>
       <div class="landing-sweep"></div>
       <div class="landing-pulse"></div>
 
-      <div class="landing-scorebars">
+      <div class="landing-scorebars" aria-hidden="true">
         <span class="landing-scorebar landing-scorebar--1"></span>
         <span class="landing-scorebar landing-scorebar--2"></span>
         <span class="landing-scorebar landing-scorebar--3"></span>
       </div>
 
       <div class="landing-shell">
-<section class="landing-hero">
-  <p class="landing-kicker">GLOBAL ARENA. PRECISION DECIDES.</p>
+        <header class="landing-hero">
+          <p class="landing-kicker">GLOBAL ARENA. PRECISION DECIDES.</p>
+          <h1 class="landing-title">ARCPIVOT</h1>
+          <p class="landing-subtitle">
+            A high-intensity arena duel game where timing, positioning, and control decide every exchange.
+          </p>
+          <p class="landing-support">
+            ENTER THE ARENA. READ THE PLAY. EXECUTE UNDER PRESSURE.
+          </p>
+        </header>
 
-  <h1 class="landing-title">ARCPIVOT</h1>
+        <section class="landing-live-grid" aria-label="ArcPivot live systems overview">
+          <aside class="live-stack live-stack--left">
+            <div class="stack-header">LIVE ARENA STACK</div>
+            <div class="stack-item is-hot">
+              <span class="stack-led"></span>
+              <span class="stack-key">LIVE FEED</span>
+              <span class="stack-value">ONLINE</span>
+            </div>
+            <div class="stack-item">
+              <span class="stack-led"></span>
+              <span class="stack-key">ARENA STATUS</span>
+              <span class="stack-value">CALIBRATED</span>
+            </div>
+            <div class="stack-item">
+              <span class="stack-led"></span>
+              <span class="stack-key">SIGNAL</span>
+              <span class="stack-value">STABLE</span>
+            </div>
+            <div class="stack-item">
+              <span class="stack-led"></span>
+              <span class="stack-key">LOADOUT CHANNEL</span>
+              <span class="stack-value">READY</span>
+            </div>
+            <div class="stack-item">
+              <span class="stack-led"></span>
+              <span class="stack-key">QUEUE</span>
+              <span class="stack-value">OPEN</span>
+            </div>
+          </aside>
 
-  <p class="landing-subtitle">
-    A high-intensity arena game where timing, positioning, and control decide.
-  </p>
+          <section class="landing-center-stage" aria-label="ArcPivot command deck">
+            <div class="broadcast-modules-row">
+              <article class="broadcast-module">
+                <div class="module-kicker">SYSTEM 01</div>
+                <div class="module-title">PRECISION-DRIVEN GAMEPLAY</div>
+                <div class="module-body">
+                  Every interaction is tuned for timing, pressure, control, and competitive consistency.
+                </div>
+              </article>
 
-  <p class="landing-support">
-    Enter the arena. Read the play. Execute under pressure.
-  </p>
-</section>
+              <article class="broadcast-module">
+                <div class="module-kicker">SYSTEM 02</div>
+                <div class="module-title">STRUCTURED MATCH FLOW</div>
+                <div class="module-body">
+                  Move from mode select to arena setup and live loadout with clear, performance-first pacing.
+                </div>
+              </article>
+            </div>
 
-<section class="landing-feature-grid">
-  <article class="landing-feature-card">
-    <div class="landing-feature-title">PRECISION-DRIVEN GAMEPLAY</div>
-    <div class="landing-feature-body">
-      Every interaction is tuned for control, timing, and competitive consistency.
-    </div>
-  </article>
+            <div class="command-deck">
+              <div class="command-deck-headline">CENTRAL COMMAND DECK</div>
+              <div class="command-deck-copy">
+                Enter the live match pipeline or jump straight into the current desktop demo build.
+              </div>
 
-  <article class="landing-feature-card">
-    <div class="landing-feature-title">STRUCTURED MATCH FLOW</div>
-    <div class="landing-feature-body">
-      Move from mode select to arena setup and live loadout with clear, performance-first pacing.
-    </div>
-  </article>
+              <div class="landing-action-row">
+                <a class="landing-button landing-button-primary" href="mode.html">
+                  <span class="landing-button-label">Enter Arena</span>
+                  <span class="button-signal"></span>
+                </a>
 
-  <article class="landing-feature-card">
-    <div class="landing-feature-title">BROADCAST-LEVEL EXPERIENCE</div>
-    <div class="landing-feature-body">
-      Built to feel like a live championship environment from the first second.
-    </div>
-  </article>
-</section>
+                <a class="landing-button landing-button-secondary" href="demo/index.html">
+                  <span class="landing-button-label">Open Demo</span>
+                  <span class="button-signal"></span>
+                </a>
+              </div>
+            </div>
 
-<div class="landing-action-row">
+            <div class="floor-focus" aria-hidden="true">
+              <div class="floor-ring floor-ring--outer"></div>
+              <div class="floor-ring floor-ring--inner"></div>
+              <div class="floor-label">ARENA FLOOR OWNERSHIP</div>
+              <div class="floor-copy">Projected entry focus • spotlight lock • center energy sync</div>
+            </div>
+          </section>
 
-<a class="landing-button landing-button-primary" href="mode.html">
-  <span class="landing-button-label">Enter Arena</span>
-  <span class="button-signal"></span>
-</a>
-
-
-  <a class="landing-button landing-button-secondary" href="demo/index.html">
-    <span class="landing-button-label">Open Demo</span>
-    <span class="button-signal"></span>
-  </a>
-</div>
+          <aside class="live-stack live-stack--right">
+            <div class="stack-header">MATCH OPS STACK</div>
+            <div class="stack-item is-hot alt-hot">
+              <span class="stack-led"></span>
+              <span class="stack-key">MATCH TYPE</span>
+              <span class="stack-value">DUEL</span>
+            </div>
+            <div class="stack-item">
+              <span class="stack-led"></span>
+              <span class="stack-key">ROTATION</span>
+              <span class="stack-value">ACTIVE</span>
+            </div>
+            <div class="stack-item">
+              <span class="stack-led"></span>
+              <span class="stack-key">SYSTEMS</span>
+              <span class="stack-value">GREEN</span>
+            </div>
+            <div class="stack-item">
+              <span class="stack-led"></span>
+              <span class="stack-key">BUILD STATUS</span>
+              <span class="stack-value">READY</span>
+            </div>
+            <div class="stack-item">
+              <span class="stack-led"></span>
+              <span class="stack-key">PRE-MATCH WINDOW</span>
+              <span class="stack-value">LIVE</span>
+            </div>
+          </aside>
+        </section>
       </div>
 
-<div class="landing-broadcast-bar">
-  <div class="landing-live-module">
-    <span class="landing-live-dot"></span>
-    <span class="landing-live-text">LIVE</span>
-  </div>
+      <div class="landing-broadcast-bar">
+        <div class="landing-live-module">
+          <span class="landing-live-dot"></span>
+          <span class="landing-live-text">LIVE</span>
+        </div>
 
-  <div class="landing-status-module">
-    <span class="landing-status-label">NEXT MATCH STARTS IN</span>
-    <span class="landing-status-time" id="landing-countdown">02:24</span>
-  </div>
+        <div class="landing-status-module">
+          <span class="landing-status-label">NEXT MATCH STARTS IN</span>
+          <span class="landing-status-time" id="landing-countdown">02:24</span>
+        </div>
 
-<div class="landing-feed-window" aria-label="ArcPivot live broadcast updates">
-  <div class="landing-feed-marquee">
-    <div class="landing-feed-track">
-      <span class="landing-feed-tag">LIVE SIGNAL</span>
-      <span>Competitive arena channel active</span>
-      <span class="landing-feed-divider">•</span>
-      <span>Precision systems calibrated</span>
-      <span class="landing-feed-divider">•</span>
-      <span>Mode select standing by</span>
-      <span class="landing-feed-divider">•</span>
-      <span>Arena preview systems online</span>
-      <span class="landing-feed-divider">•</span>
-      <span>Loadout chamber ready</span>
-      <span class="landing-feed-divider">•</span>
-      <span>Championship signal stable</span>
-      <span class="landing-feed-divider">•</span>
-    </div>
+        <div class="landing-feed-window" aria-label="ArcPivot live broadcast updates">
+          <div class="landing-feed-marquee">
+            <div class="landing-feed-track">
+              <span class="landing-feed-tag">LIVE SIGNAL</span>
+              <span>Competitive arena channel active</span>
+              <span class="landing-feed-divider">•</span>
+              <span>Precision systems calibrated</span>
+              <span class="landing-feed-divider">•</span>
+              <span>Mode select standing by</span>
+              <span class="landing-feed-divider">•</span>
+              <span>Arena preview systems online</span>
+              <span class="landing-feed-divider">•</span>
+              <span>Loadout chamber ready</span>
+              <span class="landing-feed-divider">•</span>
+              <span>Championship signal stable</span>
+              <span class="landing-feed-divider">•</span>
+              <span class="landing-feed-tag">QUEUE OPEN</span>
+              <span>Broadcast uplink nominal</span>
+              <span class="landing-feed-divider">•</span>
+            </div>
 
-    <div class="landing-feed-track" aria-hidden="true">
-      <span class="landing-feed-tag">LIVE SIGNAL</span>
-      <span>Competitive arena channel active</span>
-      <span class="landing-feed-divider">•</span>
-      <span>Precision systems calibrated</span>
-      <span class="landing-feed-divider">•</span>
-      <span>Mode select standing by</span>
-      <span class="landing-feed-divider">•</span>
-      <span>Arena preview systems online</span>
-      <span class="landing-feed-divider">•</span>
-      <span>Loadout chamber ready</span>
-      <span class="landing-feed-divider">•</span>
-      <span>Championship signal stable</span>
-      <span class="landing-feed-divider">•</span>
-    </div>
-  </div>
-</div>
-</div>
+            <div class="landing-feed-track" aria-hidden="true">
+              <span class="landing-feed-tag">LIVE SIGNAL</span>
+              <span>Competitive arena channel active</span>
+              <span class="landing-feed-divider">•</span>
+              <span>Precision systems calibrated</span>
+              <span class="landing-feed-divider">•</span>
+              <span>Mode select standing by</span>
+              <span class="landing-feed-divider">•</span>
+              <span>Arena preview systems online</span>
+              <span class="landing-feed-divider">•</span>
+              <span>Loadout chamber ready</span>
+              <span class="landing-feed-divider">•</span>
+              <span>Championship signal stable</span>
+              <span class="landing-feed-divider">•</span>
+              <span class="landing-feed-tag">QUEUE OPEN</span>
+              <span>Broadcast uplink nominal</span>
+              <span class="landing-feed-divider">•</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </main>
   </div>
 
@@ -128,31 +198,19 @@
     const landingButtons = document.querySelectorAll('.landing-button');
 
     landingButtons.forEach((button) => {
+      const targetHref = button.getAttribute('href');
+
       button.addEventListener('click', (event) => {
-        const targetHref = button.getAttribute('href');
+        if (!targetHref) return;
 
-        if (targetHref) {
-          event.preventDefault();
-        }
-
+        event.preventDefault();
         button.classList.remove('is-fired');
         void button.offsetWidth;
         button.classList.add('is-fired');
 
         setTimeout(() => {
-          button.classList.remove('is-fired');
-
-          if (targetHref) {
-            window.location.href = targetHref;
-          }
+          window.location.href = targetHref;
         }, 240);
-      });
-
-      button.addEventListener('keydown', (event) => {
-        if (event.key === 'Enter' || event.key === ' ') {
-          event.preventDefault();
-          button.click();
-        }
       });
     });
 
@@ -168,12 +226,7 @@
     renderCountdown();
 
     setInterval(() => {
-      if (totalSeconds > 0) {
-        totalSeconds -= 1;
-      } else {
-        totalSeconds = 2 * 60 + 24;
-      }
-
+      totalSeconds = totalSeconds > 0 ? totalSeconds - 1 : 2 * 60 + 24;
       renderCountdown();
     }, 1000);
   </script>

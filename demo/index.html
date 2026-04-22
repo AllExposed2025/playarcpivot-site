@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ArcPivot Rush Duel</title>
-
   <link rel="stylesheet" href="/demo/style.css" />
   <script src="https://cdn.jsdelivr.net/npm/phaser@3/dist/phaser.js"></script>
 </head>
@@ -28,42 +27,16 @@
         <div class="control-label">AI Opponent</div>
 
         <div class="control-buttons">
-          <button class="ai-button" data-ai-level="easy" type="button">Easy</button>
-          <button class="ai-button is-active" data-ai-level="medium" type="button">Medium</button>
+          <button class="ai-button is-active" data-ai-level="normal" type="button">Normal</button>
           <button class="ai-button" data-ai-level="hard" type="button">Hard</button>
         </div>
 
-        <div class="control-status" id="ai-status">AI: MEDIUM</div>
-      </div>
-
-      <div class="control-group">
-        <div class="control-label">Touch Hand</div>
-
-        <div class="control-buttons">
-          <button class="hand-button" data-touch-hand="left" type="button">Left-handed</button>
-          <button class="hand-button is-active" data-touch-hand="right" type="button">Right-handed</button>
-        </div>
-
-        <div class="control-status" id="touch-status">Touch: RIGHT-HANDED</div>
+        <div class="control-status" id="ai-status">AI: Normal</div>
       </div>
     </div>
 
     <div id="game-stage">
       <div id="game-container"></div>
-
-      <div id="rotate-overlay" aria-hidden="true">
-        <div class="rotate-box">
-          <div class="rotate-title">Rotate Device</div>
-          <div class="rotate-copy">Use landscape mode for Arcade touch controls.</div>
-        </div>
-      </div>
-
-      <div id="touch-overlay" aria-hidden="true">
-        <div id="touch-pad" class="right-handed">
-          <div id="touch-pad-ring"></div>
-          <div id="touch-pad-thumb"></div>
-        </div>
-      </div>
     </div>
   </div>
 

@@ -9,9 +9,9 @@ const ARENA_BOTTOM = 600;
 const ARENA_CENTER_X = (ARENA_LEFT + ARENA_RIGHT) / 2;
 const ARENA_CENTER_Y = (ARENA_TOP + ARENA_BOTTOM) / 2;
 
-const UNIT_SPEED = 360;
-
-const HORIZONTAL_SPEED_FACTOR = 0.55;
+// Aangepaste snelheden voor meer actie
+const UNIT_SPEED = 380;
+const HORIZONTAL_SPEED_FACTOR = 0.58;
 const HORIZONTAL_SPEED = UNIT_SPEED * HORIZONTAL_SPEED_FACTOR;
 
 const LEFT_START_X = 76;
@@ -30,35 +30,24 @@ const FORWARD_VERTICAL_BONUS = 1.10;
 const DEEP_RETURN_SPEED_PENALTY = 0.90;
 const DEEP_VERTICAL_PENALTY = 0.86;
 const RALLY_HITS_PER_STEP = 2;
-const RALLY_SPEED_STEP = 0.04;
-const MAX_RALLY_SPEED_MULTIPLIER = 1.30;
+const RALLY_SPEED_STEP = 0.05;      // Snellere rally opbouw
+const MAX_RALLY_SPEED_MULTIPLIER = 1.45; // Hogere topsnelheid
+
+// AI instellingen: alleen Normal en Hard
 const AI_SETTINGS = {
-  easy: {
-    label: 'Easy',
-    speedMultiplier: 0.58,
-    reactionMs: 360,
-    attackBias: 0.10,
-    interceptBias: 0.42,
-    errorMargin: 52,
-    deadZone: 32,
-    targetLerp: 0.16,
-    forwardCommit: 0.28,
-    xErrorMargin: 26,
-    frontExposureError: 26
-  },
-  medium: {
-    label: 'Medium',
-    speedMultiplier: 0.80,
-    reactionMs: 210,
-    attackBias: 0.22,
-    interceptBias: 0.64,
-    errorMargin: 20,
-    deadZone: 16,
-    targetLerp: 0.24,
-    forwardCommit: 0.42,
-    xErrorMargin: 14,
-    frontExposureError: 14
-  },
+normal: {
+    label: 'Normal',
+    speedMultiplier: 0.52,      // langzamer bewegen
+    reactionMs: 420,            // tragere reactie
+    attackBias: 0.10,           // minder agressief
+    interceptBias: 0.38,        // minder goed anticiperen
+    errorMargin: 48,            // meer fouten in verticale beweging
+    deadZone: 32,               // grotere dode zone
+    targetLerp: 0.14,           // langzamer bijsturen
+    forwardCommit: 0.20,        // minder ver naar voren komen
+    xErrorMargin: 28,           // meer fouten in horizontale beweging
+    frontExposureError: 28
+},
   hard: {
     label: 'Hard',
     speedMultiplier: 0.94,
@@ -83,9 +72,8 @@ const CORE_RADIUS = 12;
 const START_CORE_SPEED_X = 320;
 const START_CORE_SPEED_Y = 205;
 
-// Gameplay feel tuning
-const MIN_HORIZONTAL_SPEED = 320;
-const MAX_VERTICAL_RATIO = 1.15;
+const MIN_HORIZONTAL_SPEED = 360;   // Verhoogd
+const MAX_VERTICAL_RATIO = 1.20;    // Meer verticale variatie
 
 const GOAL_WIDTH = 14;
 const GOAL_HEIGHT = 175;
@@ -132,7 +120,7 @@ let arenaGlow;
 let leftKeys;
 let cursors;
 
-let aiDifficultyKey = 'medium';
+let aiDifficultyKey = 'normal';
 let aiDifficulty = AI_SETTINGS[aiDifficultyKey];
 let aiTargetX = RIGHT_START_X;
 let aiTargetY = ARENA_CENTER_Y;
@@ -146,21 +134,11 @@ let aiUiButtons = [];
 let sideUiStatus;
 let sideUiButtons = [];
 
-let touchHand = 'right';
-let touchUiStatus;
-let touchUiButtons = [];
-let touchDevice = false;
-
-let touchOverlayEl;
-let touchPadEl;
-let touchPadThumbEl;
-
 let gameShellEl;
 let gameTitleEl;
 let arcadeControlsEl;
 let gameStageEl;
 let gameContainerEl;
-
 
 let playerSide = 'left';
 let aiSide = 'right';
@@ -199,6 +177,10 @@ let goalPosts = [];
 let audioCtx = null;
 let audioUnlocked = false;
 
+// Nieuwe variabelen voor focus meter (comeback mechanic)
+let focusMeter = 0;      // 0 tot 100
+let focusActive = false;
+
 const config = {
   type: Phaser.AUTO,
   width: GAME_WIDTH,
@@ -228,6 +210,7 @@ new Phaser.Game(config);
 
 function create() {
   sceneRef = this;
+  this.load.image('core', 'assets/game/core/core_01.png');
   drawArena();
   createExternalScoreboard();
   createGoalsAndPosts();
@@ -239,12 +222,10 @@ function create() {
   createAIDifficultyDisplay();
   initArcadeSideUI();
   initAIDifficultyUI();
-  initTouchUI();
   initStageAutoFit();
   setPlayerSide('left');
-  setTouchHand('right');
   resetFighterPositions();
-  setAIDifficulty('medium');
+  setAIDifficulty('normal');   // standaard Normal (voorheen medium)
   resetCore(true);
 }
 
@@ -564,34 +545,47 @@ function createFighter(x, y, facing) {
 function createCore() {
   const scene = sceneRef;
 
+  // Trail dots blijven (cirkels)
   for (let i = 0; i < 6; i++) {
     const dot = scene.add.circle(-100, -100, 6 - i * 0.6, 0xf5a524, 0);
     dot.setDepth(120);
     trailDots.push(dot);
   }
 
-  coreGlow = scene.add.circle(ARENA_CENTER_X, ARENA_CENTER_Y, 20, 0xf5a524, 0.15);
-  coreGlow.setStrokeStyle(2, 0xf5a524, 0.18);
-
-  core = scene.add.circle(ARENA_CENTER_X, ARENA_CENTER_Y, CORE_RADIUS, 0xff8a00, 1);
-  core.setStrokeStyle(2, 0xf5f7fa, 0.4);
-
-  coreInner = scene.add.circle(ARENA_CENTER_X, ARENA_CENTER_Y, 5, 0xfff1b8, 1);
-
+  // Grote gloed (pulseert)
+  coreGlow = scene.add.circle(ARENA_CENTER_X, ARENA_CENTER_Y, 28, 0xff8a00, 0.3);
+  coreGlow.setStrokeStyle(2, 0xffaa44, 0.5);
   coreGlow.setDepth(200);
+  scene.tweens.add({
+    targets: coreGlow,
+    scaleX: 1.25,
+    scaleY: 1.25,
+    alpha: 0.5,
+    duration: 400,
+    yoyo: true,
+    repeat: -1
+  });
+
+  // Kern (fel oranje)
+  core = scene.add.circle(ARENA_CENTER_X, ARENA_CENTER_Y, CORE_RADIUS, 0xff6600, 1);
+  core.setStrokeStyle(2, 0xffcc88, 0.9);
   core.setDepth(201);
+
+  // Binnenste kern (wit/geel)
+  coreInner = scene.add.circle(ARENA_CENTER_X, ARENA_CENTER_Y, 6, 0xfff5cc, 1);
   coreInner.setDepth(202);
 }
 
 function createHelpText() {
   const scene = sceneRef;
 
-  scene.add.text(ARENA_CENTER_X, 590, 'ARROWS = HUMAN // TOUCHPAD ON MOBILE // CHOOSE SIDE ABOVE', {
+  scene.add.text(ARENA_CENTER_X, 590, 'ARROWS = HUMAN // DESKTOP DEMO BASE', {
     fontFamily: 'Courier New',
     fontSize: '14px',
     color: '#f5f7fa'
   }).setOrigin(0.5);
 }
+
 
 function createHeroGoalOverlay() {
   const scene = sceneRef;
@@ -655,68 +649,6 @@ function createHeroGoalOverlay() {
   centerOverlayPulse2.setDepth(999);
 }
 
-function updateLayoutMode() {
-  const viewport = window.visualViewport;
-  const width = viewport ? viewport.width : window.innerWidth;
-  const height = viewport ? viewport.height : window.innerHeight;
-  const isPortrait = height > width;
-
-  document.body.classList.remove(
-    'layout-desktop',
-    'layout-tablet',
-    'layout-phone-landscape',
-    'layout-phone-portrait'
-  );
-
-  if (touchDevice && isPortrait && width <= 900) {
-    document.body.classList.add('layout-phone-portrait');
-    return;
-  }
-
-  if (width <= 900 && !isPortrait) {
-    document.body.classList.add('layout-phone-landscape');
-    return;
-  }
-
-  if (width <= 1220) {
-    document.body.classList.add('layout-tablet');
-    return;
-  }
-
-  document.body.classList.add('layout-desktop');
-}
-
-function updateLayoutMode() {
-  const viewport = window.visualViewport;
-  const width = viewport ? viewport.width : window.innerWidth;
-  const height = viewport ? viewport.height : window.innerHeight;
-  const isPortrait = height > width;
-
-  document.body.classList.remove(
-    'layout-desktop',
-    'layout-tablet',
-    'layout-phone-landscape',
-    'layout-phone-portrait'
-  );
-
-  if (touchDevice && isPortrait && width <= 900) {
-    document.body.classList.add('layout-phone-portrait');
-    return;
-  }
-
-  if (width <= 900 && !isPortrait) {
-    document.body.classList.add('layout-phone-landscape');
-    return;
-  }
-
-  if (width <= 1220) {
-    document.body.classList.add('layout-tablet');
-    return;
-  }
-
-  document.body.classList.add('layout-desktop');
-}
-
 function initStageAutoFit() {
   gameShellEl = document.getElementById('game-shell');
   gameTitleEl = document.getElementById('game-title');
@@ -725,22 +657,10 @@ function initStageAutoFit() {
   gameContainerEl = document.getElementById('game-container');
 
   window.addEventListener('resize', applyStageAutoFit);
-  window.addEventListener('orientationchange', applyStageAutoFit);
 
-  requestAnimationFrame(() => {
-    updateLayoutMode();
-    applyStageAutoFit();
-  });
-
-  setTimeout(() => {
-    updateLayoutMode();
-    applyStageAutoFit();
-  }, 50);
-
-  setTimeout(() => {
-    updateLayoutMode();
-    applyStageAutoFit();
-  }, 250);
+  requestAnimationFrame(applyStageAutoFit);
+  setTimeout(applyStageAutoFit, 50);
+  setTimeout(applyStageAutoFit, 250);
 }
 
 function applyStageAutoFit() {
@@ -748,11 +668,8 @@ function applyStageAutoFit() {
     return;
   }
 
-  updateLayoutMode();
-
-  const viewport = window.visualViewport;
-  const viewportWidth = viewport ? viewport.width : window.innerWidth;
-  const viewportHeight = viewport ? viewport.height : window.innerHeight;
+  const viewportWidth = window.innerWidth;
+  const viewportHeight = window.innerHeight;
 
   const shellStyles = window.getComputedStyle(gameShellEl);
   const shellPaddingTop = parseFloat(shellStyles.paddingTop) || 0;
@@ -761,52 +678,19 @@ function applyStageAutoFit() {
 
   const titleHeight = gameTitleEl.offsetHeight || 0;
   const controlsHeight = arcadeControlsEl.offsetHeight || 0;
-  const controlsWidth = arcadeControlsEl.offsetWidth || 0;
 
-  const isPhoneLandscape = document.body.classList.contains('layout-phone-landscape');
-  const isPhonePortrait = document.body.classList.contains('layout-phone-portrait');
+  const availableWidth = Math.max(760, Math.min(gameShellEl.clientWidth, viewportWidth - 24));
 
+  const verticalUsed =
+    shellPaddingTop +
+    shellPaddingBottom +
+    titleHeight +
+    controlsHeight +
+    shellGap * 3 +
+    18;
+
+  const availableHeight = Math.max(420, viewportHeight - verticalUsed);
   const aspectRatio = GAME_WIDTH / GAME_HEIGHT;
-
-  let availableWidth = viewportWidth;
-  let availableHeight = viewportHeight;
-
-  if (isPhoneLandscape) {
-    const horizontalUsed =
-      controlsWidth +
-      shellPaddingTop +
-      shellPaddingBottom +
-      shellGap * 2 +
-      14;
-
-    const verticalUsed =
-      shellPaddingTop +
-      shellPaddingBottom +
-      titleHeight +
-      shellGap * 2 +
-      8;
-
-    availableWidth = Math.max(220, viewportWidth - horizontalUsed);
-    availableHeight = Math.max(180, viewportHeight - verticalUsed);
-  } else {
-    const widthPadding = isPhonePortrait ? 12 : 8;
-    const heightReserve = isPhonePortrait ? 14 : 8;
-
-    availableWidth = Math.max(
-      260,
-      Math.min(gameShellEl.clientWidth, viewportWidth - widthPadding)
-    );
-
-    const verticalUsed =
-      shellPaddingTop +
-      shellPaddingBottom +
-      titleHeight +
-      controlsHeight +
-      shellGap * 3 +
-      heightReserve;
-
-    availableHeight = Math.max(220, viewportHeight - verticalUsed);
-  }
 
   let stageWidth = availableWidth;
   let stageHeight = stageWidth / aspectRatio;
@@ -872,146 +756,6 @@ function initAIDifficultyUI() {
   });
 }
 
-function initTouchUI() {
-  touchUiStatus = document.getElementById('touch-status');
-  touchUiButtons = Array.from(document.querySelectorAll('.hand-button'));
-  touchOverlayEl = document.getElementById('touch-overlay');
-  touchPadEl = document.getElementById('touch-pad');
-  touchPadThumbEl = document.getElementById('touch-pad-thumb');
-
-  touchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
-
-  document.body.classList.toggle('touch-device', touchDevice);
-
-  touchUiButtons.forEach((button) => {
-    button.addEventListener('click', () => {
-      const hand = button.dataset.touchHand;
-      setTouchHand(hand);
-    });
-  });
-
-  if (touchDevice && touchPadEl) {
-    touchPadEl.addEventListener('pointerdown', onTouchPadDown);
-    window.addEventListener('pointermove', onTouchPadMove);
-    window.addEventListener('pointerup', onTouchPadUp);
-    window.addEventListener('pointercancel', onTouchPadUp);
-  }
-
-  window.addEventListener('resize', updateOrientationState);
-  window.addEventListener('orientationchange', updateOrientationState);
-  updateOrientationState();
-}
-
-function updateOrientationState() {
-  if (!touchDevice) {
-    document.body.classList.remove('portrait-mode');
-    document.body.classList.remove('landscape-mode');
-    updateLayoutMode();
-    return;
-  }
-
-  const isPortrait = window.innerHeight > window.innerWidth;
-
-  document.body.classList.toggle('portrait-mode', isPortrait);
-  document.body.classList.toggle('landscape-mode', !isPortrait);
-
-  updateLayoutMode();
-  setTimeout(applyStageAutoFit, 0);
-}
-
-
-function setTouchHand(hand) {
-  if (hand !== 'left' && hand !== 'right') {
-    return;
-  }
-
-  touchHand = hand;
-
-  if (touchUiStatus) {
-    touchUiStatus.textContent = `Touch: ${touchHand.toUpperCase()}-HANDED`;
-  }
-
-  if (touchUiButtons.length) {
-    touchUiButtons.forEach((button) => {
-      button.classList.toggle('is-active', button.dataset.touchHand === hand);
-    });
-  }
-
-  if (touchPadEl) {
-    touchPadEl.classList.toggle('left-handed', hand === 'left');
-    touchPadEl.classList.toggle('right-handed', hand === 'right');
-  }
-
-  resetTouchInput();
-  setTimeout(applyStageAutoFit, 0);
-}
-
-function resetTouchInput() {
-  touchState.active = false;
-  touchState.pointerId = null;
-  touchState.inputX = 0;
-  touchState.inputY = 0;
-
-  if (touchPadThumbEl) {
-    touchPadThumbEl.style.transform = 'translate(-50%, -50%)';
-  }
-}
-
-function onTouchPadDown(event) {
-  if (!touchDevice || !touchPadEl || !touchPadThumbEl) {
-    return;
-  }
-
-  event.preventDefault();
-
-  touchState.active = true;
-  touchState.pointerId = event.pointerId;
-
-  const rect = touchPadEl.getBoundingClientRect();
-  touchState.centerX = rect.left + rect.width / 2;
-  touchState.centerY = rect.top + rect.height / 2;
-
-  updateTouchVector(event.clientX, event.clientY);
-}
-
-function onTouchPadMove(event) {
-  if (!touchState.active || event.pointerId !== touchState.pointerId) {
-    return;
-  }
-
-  event.preventDefault();
-  updateTouchVector(event.clientX, event.clientY);
-}
-
-function onTouchPadUp(event) {
-  if (event.pointerId !== touchState.pointerId) {
-    return;
-  }
-
-  resetTouchInput();
-}
-
-function updateTouchVector(clientX, clientY) {
-  let dx = clientX - touchState.centerX;
-  let dy = clientY - touchState.centerY;
-
-  const distance = Math.sqrt(dx * dx + dy * dy);
-  const maxDistance = touchState.radius;
-
-  if (distance > maxDistance) {
-    const scale = maxDistance / distance;
-    dx *= scale;
-    dy *= scale;
-  }
-
-  touchState.inputX = dx / maxDistance;
-  touchState.inputY = dy / maxDistance;
-
-  if (touchPadThumbEl) {
-    touchPadThumbEl.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
-  }
-}
-
 function setPlayerSide(side) {
   if (side !== 'left' && side !== 'right') {
     return;
@@ -1038,12 +782,13 @@ function setPlayerSide(side) {
     });
   }
 
-if (aiHudText && aiDifficulty) {
+  if (aiHudText && aiDifficulty) {
     aiHudText.setText(`AI: ${aiDifficulty.label.toUpperCase()}`);
   }
 
   setTimeout(applyStageAutoFit, 0);
 }
+
 
 function setAIDifficulty(level) {
   if (!AI_SETTINGS[level]) {
@@ -1076,6 +821,9 @@ if (aiUiButtons.length) {
   setTimeout(applyStageAutoFit, 0);
 }
 
+/**
+ * Resets both fighters to their starting positions and updates AI targets.
+ */
 function resetFighterPositions() {
   leftFighter.container.x = LEFT_START_X;
   leftFighter.container.y = ARENA_CENTER_Y;
@@ -1197,13 +945,6 @@ function moveHumanFighter(dt) {
     inputY += 1;
   }
 
-  const keyboardActive = inputX !== 0 || inputY !== 0;
-
-  if (!keyboardActive && touchDevice && touchState.active && document.body.classList.contains('landscape-mode')) {
-    inputX = touchState.inputX;
-    inputY = touchState.inputY;
-  }
-
   if (inputX !== 0 || inputY !== 0) {
     const magnitude = Math.sqrt(inputX * inputX + inputY * inputY);
 
@@ -1218,6 +959,7 @@ function moveHumanFighter(dt) {
 
   clampFighterToLane(humanFighter);
 }
+
 
 function moveAIOpponent(dt, delta) {
   if (!aiFighter) {
@@ -1657,6 +1399,13 @@ function handleRightBackWall() {
 function scoreGoal(side) {
   roundPaused = true;
 
+  // Focus meter gaat omhoog als de tegenstander scoort (jij krijgt een goal tegen)
+  if (side !== playerSide) {
+    focusMeter = Math.min(100, focusMeter + 20);
+    console.log("Focus meter: " + focusMeter);
+    // Later maken we de meter zichtbaar en geven we een boost
+  }
+
   const comboData = updateComboState(side);
 
   if (side === 'left') {
@@ -2042,10 +1791,14 @@ function onCoreHit() {
   });
 }
 
+/**
+ * Resets rally hit count and speed multiplier to their initial values.
+ */
 function resetRallyState() {
   rallyHitCount = 0;
   rallySpeedMultiplier = 1;
 }
+
 
 function registerRallyHit() {
   rallyHitCount++;
@@ -2123,6 +1876,10 @@ function applyTrajectoryConstraints(preferredXDirection = null) {
   }
 }
 
+/**
+ * Resets the core (ball) to the center and initializes its velocity and rally state.
+ * @param {boolean} isFirstStart - Whether this is the first start of the game.
+ */
 function resetCore(isFirstStart) {
   core.x = ARENA_CENTER_X;
   core.y = ARENA_CENTER_Y;
@@ -2141,18 +1898,14 @@ function resetCore(isFirstStart) {
     }
   }
 
+  applyTrajectoryConstraints(direction);
+  resetRallyState();
+  aiDecisionTimer = 0;
 
-applyTrajectoryConstraints(direction);
-resetRallyState();
-
-aiDecisionTimer = 0;
-
-if (aiFighter) {
+  if (aiFighter) {
     aiTargetX = aiFighter.container.x;
     aiDesiredTargetX = aiTargetX;
     aiTargetY = aiFighter.container.y;
     aiDesiredTargetY = aiTargetY;
   }
-
-  resetTouchInput();
 }

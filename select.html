@@ -171,15 +171,21 @@
     const choiceChips = document.querySelectorAll('.choice-chip');
     const selectionStateBox = document.getElementById('selection-state-box');
 
+    // Haal opgeslagen waarden op (of gebruik standaard)
+    const savedP1Fighter = sessionStorage.getItem('ap_player1_fighter');
+    const savedP1Shield = sessionStorage.getItem('ap_player1_shield');
+    const savedP2Fighter = sessionStorage.getItem('ap_player2_fighter');
+    const savedP2Shield = sessionStorage.getItem('ap_player2_shield');
+
     const selections = {
       p1: {
-        fighter: 'Arc Runner',
-        shield: 'Aegis Arc',
+        fighter: savedP1Fighter || 'Arc Runner',
+        shield: savedP1Shield || 'Aegis Arc',
         status: 'Adjusting loadout'
       },
       p2: {
-        fighter: 'Iron Shade',
-        shield: 'Blade Wall',
+        fighter: savedP2Fighter || 'Iron Shade',
+        shield: savedP2Shield || 'Blade Wall',
         status: 'Adjusting loadout'
       }
     };
@@ -200,6 +206,13 @@
 
     function playerLabel(value) {
       return value === 'p2' ? 'Player Two' : 'Player One';
+    }
+
+    function saveSelectionToStorage() {
+      sessionStorage.setItem('ap_player1_fighter', selections.p1.fighter);
+      sessionStorage.setItem('ap_player1_shield', selections.p1.shield);
+      sessionStorage.setItem('ap_player2_fighter', selections.p2.fighter);
+      sessionStorage.setItem('ap_player2_shield', selections.p2.shield);
     }
 
     function renderChoiceChips() {
@@ -245,6 +258,7 @@
       });
 
       renderChoiceChips();
+      saveSelectionToStorage(); // Opslaan bij elke weergave-update
     }
 
     function applyModeContext() {
@@ -351,6 +365,7 @@
       renderPanels();
     }
 
+    // Event listeners
     leftPanel.addEventListener('click', () => {
       if (mode === '1v1') {
         activePlayer = 'p1';
@@ -382,10 +397,11 @@
         selections[activePlayer][type] = value;
         selections[activePlayer].status = 'Adjusting loadout';
 
-        renderPanels();
+        renderPanels(); // Dit roept saveSelectionToStorage aan
       });
     });
 
+    // Start de pagina
     applyModeContext();
   </script>
 </body>
