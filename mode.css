@@ -109,6 +109,51 @@ a:visited {
   filter: blur(14px);
   animation: modeBroadcastPulse 10s ease-in-out infinite;
 }
+.mode-spotlights {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.mode-spotlight {
+  position: absolute;
+  top: -18%;
+  width: 18%;
+  height: 95%;
+  transform-origin: top center;
+  filter: blur(10px);
+  opacity: 0.22;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 222, 138, 0.24) 0%,
+    rgba(255, 200, 84, 0.10) 26%,
+    rgba(255, 200, 84, 0.03) 56%,
+    rgba(255, 200, 84, 0) 100%
+  );
+  clip-path: polygon(48% 0%, 52% 0%, 100% 100%, 0% 100%);
+}
+
+.mode-spotlight--1 {
+  left: 8%;
+  animation: modeSpotlightLeftA 13s ease-in-out infinite;
+}
+
+.mode-spotlight--2 {
+  left: 24%;
+  animation: modeSpotlightLeftB 11s ease-in-out infinite;
+}
+
+.mode-spotlight--3 {
+  right: 24%;
+  animation: modeSpotlightRightA 12s ease-in-out infinite;
+}
+
+.mode-spotlight--4 {
+  right: 8%;
+  animation: modeSpotlightRightB 14s ease-in-out infinite;
+}
 
 .mode-scorebars {
   position: absolute;
@@ -176,6 +221,9 @@ a:visited {
 }
 
 .mode-title {
+  position: relative;
+  display: inline-block;
+  isolation: isolate;
   font-family: "Orbitron", sans-serif;
   font-size: clamp(3.6rem, 6vw, 5.2rem);
   font-weight: 800;
@@ -183,24 +231,74 @@ a:visited {
   letter-spacing: 0.14em;
   text-transform: uppercase;
   margin: 0;
+  color: transparent;
+  -webkit-text-stroke: 1.2px rgba(255, 232, 173, 0.28);
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.18),
+    0 0 18px rgba(245, 165, 36, 0.16),
+    0 8px 18px rgba(0, 0, 0, 0.36),
+    0 18px 28px rgba(0, 0, 0, 0.28);
+  filter: drop-shadow(0 2px 0 rgba(0, 0, 0, 0.28));
+}
+
+.mode-title > span {
+  position: relative;
+  z-index: 3;
+  display: inline-block;
   background: linear-gradient(
     180deg,
-    #fff9de 0%,
-    #ffe39b 12%,
-    #ffbf44 34%,
-    #f5a524 54%,
-    #b96c0d 78%,
-    #fff1bc 100%
+    #fffbe8 0%,
+    #ffe9a8 10%,
+    #ffd171 22%,
+    #f5b94e 38%,
+    #c77916 62%,
+    #9e5909 78%,
+    #fff0c4 100%
   );
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  text-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.18),
-    0 0 18px rgba(245, 165, 36, 0.16),
-    0 8px 18px rgba(0, 0, 0, 0.36);
-  filter: drop-shadow(0 2px 0 rgba(0, 0, 0, 0.28));
 }
+
+.mode-title::before {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  color: transparent;
+  -webkit-text-stroke: 2.2px rgba(99, 54, 6, 0.58);
+  text-shadow:
+    0 0 1px rgba(0, 0, 0, 0.34),
+    0 5px 10px rgba(0, 0, 0, 0.28),
+    0 12px 18px rgba(0, 0, 0, 0.22);
+  transform: translateY(2px);
+  opacity: 0.92;
+}
+
+.mode-title::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  background: linear-gradient(
+    105deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0) 34%,
+    rgba(255, 248, 214, 0.95) 46%,
+    rgba(255, 255, 255, 0) 58%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background-size: 220% 100%;
+  background-position: -140% 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  mix-blend-mode: screen;
+  opacity: 0.72;
+  animation: modeTitleSweep 8.2s ease-in-out infinite;
+  pointer-events: none;
+}
+
 
 .mode-subtitle {
   max-width: 720px;
@@ -742,3 +840,42 @@ a:visited {
   35% { transform: scale(0.97); }
   100% { transform: scale(1); }
 }
+@keyframes modeTitleSweep { 
+ 0% { 
+ background-position: -140% 0; 
+ opacity: 0; 
+ } 
+ 12% { 
+ opacity: 0.72; 
+ } 
+ 48% { 
+ background-position: 40% 0; 
+ opacity: 0.78; 
+ } 
+ 72% { 
+ background-position: 120% 0; 
+ opacity: 0.18; 
+ } 
+ 100% { 
+ background-position: 160% 0; 
+ opacity: 0; 
+ } 
+} 
+@keyframes modeSpotlightLeftA { 
+ 0%, 100% { transform: rotate(-16deg) scaleY(1); opacity: 0.14; } 
+ 50% { transform: rotate(-5deg) scaleY(1.06); opacity: 0.28; } 
+} 
+@keyframes modeSpotlightLeftB { 
+ 0%, 100% { transform: rotate(-8deg) scaleY(0.98); opacity: 0.10; } 
+ 50% { transform: rotate(6deg) scaleY(1.08); opacity: 0.22; } 
+} 
+@keyframes modeSpotlightRightA { 
+ 0%, 100% { transform: rotate(14deg) scaleY(1); opacity: 0.14; } 
+ 50% { transform: rotate(3deg) scaleY(1.08); opacity: 0.28; } 
+} 
+@keyframes modeSpotlightRightB { 
+ 0%, 100% { transform: rotate(7deg) scaleY(0.98); opacity: 0.10; } 
+ 50% { transform: rotate(-6deg) scaleY(1.06); opacity: 0.22; } 
+} 
+
+

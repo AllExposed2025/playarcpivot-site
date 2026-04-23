@@ -1,0 +1,166 @@
+@media (max-width: 1180px) {
+  .arena-panel {
+    padding: 36px 18px 72px;
+  }
+
+  .arena-stage-stack {
+    grid-template-rows: 0.45fr auto 1fr auto;
+  }
+
+  .arena-selector-rail {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .arena-broadcast-bar {
+    height: 56px;
+    grid-template-columns: 150px 220px minmax(0, 1fr);
+  }
+
+  .arena-feed-track {
+    font-size: 0.86rem;
+  }
+}
+
+@media (max-width: 760px) {
+  body {
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  .arena-panel {
+    padding: 34px 14px 68px;
+  }
+
+  .arena-shell {
+    min-height: calc(100vh - 130px);
+    padding-top: 12px;
+  }
+
+  .arena-kicker {
+    font-size: 0.64rem;
+    letter-spacing: 0.2em;
+  }
+
+  .arena-title {
+    font-size: clamp(2.8rem, 8vw, 4rem);
+    letter-spacing: 0.1em;
+  }
+
+  .arena-subtitle {
+    max-width: 94%;
+    font-size: 0.9rem;
+  }
+
+  .arena-support {
+    font-size: 0.78rem;
+  }
+
+  .arena-stage-stack {
+    grid-template-rows: 0.25fr auto 1fr auto;
+  }
+
+  .arena-lock-box {
+    min-height: 98px;
+  }
+
+  .arena-lock-value {
+    font-size: 1.1rem;
+  }
+
+  .arena-selector-rail {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .arena-control-lane {
+    flex-direction: column;
+    width: min(340px, 100%);
+  }
+
+  .arena-control-lane .arena-back-button,
+  .arena-control-lane .arena-next-button {
+    width: 100%;
+  }
+
+  .arena-broadcast-bar {
+    height: 52px;
+    grid-template-columns: 118px 190px minmax(0, 1fr);
+  }
+
+  .arena-live-text {
+    font-size: 0.86rem;
+  }
+
+  .arena-status-label {
+    font-size: 0.64rem;
+  }
+
+  .arena-status-state {
+    font-size: 0.96rem;
+  }
+
+  .arena-feed-track {
+    font-size: 0.78rem;
+    gap: 12px;
+  }
+
+  .arena-feed-tag {
+    min-height: 24px;
+    padding: 0 10px;
+    font-size: 0.66rem;
+  }
+
+  .arena-back-button,
+  .arena-next-button {
+    min-width: 170px;
+  }
+}
+
+@media (max-width: 480px) {
+  .arena-panel {
+    padding: 24px 10px 58px;
+  }
+
+  .arena-kicker {
+    font-size: 0.58rem;
+    letter-spacing: 0.14em;
+  }
+
+  .arena-title {
+    font-size: clamp(2.3rem, 8vw, 3.2rem);
+  }
+
+  .arena-subtitle {
+    font-size: 0.82rem;
+  }
+
+  .arena-support {
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+  }
+
+  .arena-selector-rail {
+    grid-template-columns: 1fr;
+  }
+
+  .arena-broadcast-bar {
+    grid-template-columns: auto auto 1fr;
+    gap: 8px;
+    padding: 0 8px;
+  }
+
+  .arena-live-text {
+    font-size: 0.74rem;
+  }
+
+  .arena-status-label {
+    font-size: 0.58rem;
+  }
+
+  .arena-status-state {
+    font-size: 0.82rem;
+  }
+
+  .arena-feed-tag {
+    display: none;
+  }
+}

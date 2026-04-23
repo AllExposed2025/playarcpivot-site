@@ -10,9 +10,18 @@
 <body class="body--mode">
   <div class="mode-page-shell">
     <main class="mode-panel">
-      <div class="mode-overlay"></div>
-      <div class="mode-sweep"></div>
-      <div class="mode-pulse"></div>
+
+  <div class="mode-overlay"></div>
+  <div class="mode-sweep"></div>
+  <div class="mode-pulse"></div>
+
+  <div class="mode-spotlights" aria-hidden="true">
+    <span class="mode-spotlight mode-spotlight--1"></span>
+    <span class="mode-spotlight mode-spotlight--2"></span>
+    <span class="mode-spotlight mode-spotlight--3"></span>
+    <span class="mode-spotlight mode-spotlight--4"></span>
+  </div>
+
 
       <div class="mode-scorebars" aria-hidden="true">
         <span class="mode-scorebar mode-scorebar--1"></span>
@@ -23,7 +32,11 @@
       <div class="mode-shell">
         <header class="mode-hero">
           <p class="mode-kicker">CHAMPIONSHIP CHANNEL. FORMAT DECIDES.</p>
-          <h1 class="mode-title">MATCH FORMAT</h1>
+          
+        <h1 class="mode-title" data-text="MATCH FORMAT">
+          <span>MATCH FORMAT</span>
+        </h1>
+
           <p class="mode-subtitle">
             Choose the competitive format that defines how the next arena session will unfold.
           </p>

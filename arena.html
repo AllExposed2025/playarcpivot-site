@@ -4,37 +4,43 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ArcPivot — Select Arena</title>
-  <link rel="stylesheet" href="flow.css" />
   <link rel="stylesheet" href="arena.css" />
+  <link rel="stylesheet" href="arena.mobile.css" />
 </head>
 <body class="body--arena">
-  <div class="page-shell arena-page-shell">
-    <main class="panel arena-panel">
+  <div class="arena-page-shell">
+    <main class="arena-panel">
       <div class="arena-preview-layer" id="arena-preview-layer"></div>
       <div class="arena-overlay"></div>
       <div class="arena-sweep"></div>
       <div class="arena-pulse"></div>
 
-      <div class="arena-scorebars">
+      <div class="arena-spotlights" aria-hidden="true">
+        <span class="arena-spotlight arena-spotlight--1"></span>
+        <span class="arena-spotlight arena-spotlight--2"></span>
+        <span class="arena-spotlight arena-spotlight--3"></span>
+        <span class="arena-spotlight arena-spotlight--4"></span>
+      </div>
+
+      <div class="arena-scorebars" aria-hidden="true">
         <span class="arena-scorebar arena-scorebar--1"></span>
         <span class="arena-scorebar arena-scorebar--2"></span>
         <span class="arena-scorebar arena-scorebar--3"></span>
       </div>
 
       <div class="arena-shell">
-        <section class="arena-hero">
+        <header class="arena-hero">
           <p class="arena-kicker">CHAMPIONSHIP CHANNEL. STAGE SELECTION LIVE.</p>
-
-          <h1 class="arena-title">SELECT ARENA</h1>
-
+          <h1 class="arena-title" data-text="SELECT ARENA">
+            <span>SELECT ARENA</span>
+          </h1>
           <p class="arena-subtitle">
-            Choose the championship stage where the next session unfolds.
+            Choose the battleground where the next ArcPivot session unfolds.
           </p>
-
           <p class="arena-support">
-            Hover to preview each battleground. Click to lock your arena. Then continue into loadout selection.
+            Hover to preview each world. Click to lock your arena. Continue when your stage is confirmed.
           </p>
-        </section>
+        </header>
 
         <section class="arena-stage-stack">
           <div class="arena-lock-row">
@@ -47,46 +53,46 @@
 
           <section class="arena-selector-zone" aria-label="Arena selector">
             <div class="arena-selector-rail" id="arena-selector-rail">
-              <button class="arena-button" type="button" data-arena="skyline_ascent">
-                <span class="arena-button-title">Skyline Ascent</span>
-                <span class="arena-button-trait">Open-Air</span>
+              <button class="arena-button" type="button" data-arena="titan-pulse-arena">
+                <span class="arena-button-title">Titan Pulse Arena</span>
+                <span class="arena-button-trait">Flagship Championship</span>
                 <span class="arena-button-signal"></span>
               </button>
 
-              <button class="arena-button" type="button" data-arena="forge_vector">
-                <span class="arena-button-title">Forge Vector</span>
-                <span class="arena-button-trait">Industrial</span>
+              <button class="arena-button" type="button" data-arena="primal-dominion">
+                <span class="arena-button-title">Primal Dominion</span>
+                <span class="arena-button-trait">Prehistoric Combat</span>
                 <span class="arena-button-signal"></span>
               </button>
 
-              <button class="arena-button" type="button" data-arena="apex_crucible">
-                <span class="arena-button-title">Apex Crucible</span>
-                <span class="arena-button-trait">Championship</span>
+              <button class="arena-button" type="button" data-arena="neon-undergrid">
+                <span class="arena-button-title">Neon Undergrid</span>
+                <span class="arena-button-trait">Underground Circuit</span>
                 <span class="arena-button-signal"></span>
               </button>
 
-              <button class="arena-button" type="button" data-arena="hydro_reactor_core">
-                <span class="arena-button-title">Hydro Reactor Core</span>
-                <span class="arena-button-trait">Reactive</span>
+              <button class="arena-button" type="button" data-arena="skyborne-sanctum">
+                <span class="arena-button-title">Skyborne Sanctum</span>
+                <span class="arena-button-trait">Celestial Platform</span>
                 <span class="arena-button-signal"></span>
               </button>
 
-              <button class="arena-button" type="button" data-arena="solaris_hall">
-                <span class="arena-button-title">Solaris Hall</span>
-                <span class="arena-button-trait">Ceremonial</span>
+              <button class="arena-button" type="button" data-arena="abyssal-core">
+                <span class="arena-button-title">Abyssal Core</span>
+                <span class="arena-button-trait">Pressure Dome</span>
                 <span class="arena-button-signal"></span>
               </button>
             </div>
           </section>
 
           <div class="arena-control-lane">
-            <a class="landing-button landing-button-secondary arena-back-button" href="mode.html">
-              <span class="landing-button-label">Back</span>
+            <a class="arena-back-button" href="mode.html">
+              <span class="arena-back-button-label">Back</span>
               <span class="button-signal"></span>
             </a>
 
-            <button class="landing-button landing-button-primary arena-next-button is-disabled" id="arena-next-button" type="button" disabled>
-              <span class="landing-button-label">Next</span>
+            <button class="arena-next-button is-disabled" id="arena-next-button" type="button" disabled>
+              <span class="arena-next-button-label">Next</span>
               <span class="button-signal"></span>
             </button>
           </div>
@@ -110,11 +116,11 @@
               <span class="arena-feed-tag">ARENA SIGNAL</span>
               <span>Hover to preview battleground identity</span>
               <span class="arena-feed-divider">•</span>
-              <span>Click an arena to lock your selection</span>
+              <span>Click to lock your stage selection</span>
               <span class="arena-feed-divider">•</span>
-              <span>Broadcast stage channel active</span>
+              <span>New world set active</span>
               <span class="arena-feed-divider">•</span>
-              <span>Next remains locked until arena confirmation</span>
+              <span>Next unlocks after confirmation</span>
               <span class="arena-feed-divider">•</span>
             </div>
 
@@ -122,11 +128,11 @@
               <span class="arena-feed-tag">ARENA SIGNAL</span>
               <span>Hover to preview battleground identity</span>
               <span class="arena-feed-divider">•</span>
-              <span>Click an arena to lock your selection</span>
+              <span>Click to lock your stage selection</span>
               <span class="arena-feed-divider">•</span>
-              <span>Broadcast stage channel active</span>
+              <span>New world set active</span>
               <span class="arena-feed-divider">•</span>
-              <span>Next remains locked until arena confirmation</span>
+              <span>Next unlocks after confirmation</span>
               <span class="arena-feed-divider">•</span>
             </div>
           </div>
@@ -135,130 +141,6 @@
     </main>
   </div>
 
-  <script>
-    const arenas = {
-      apex_crucible: {
-        name: 'Apex Crucible',
-        trait: 'Championship',
-        image: 'assets/webflow/arena/apex_crucible_bg_01.png'
-      },
-      skyline_ascent: {
-        name: 'Skyline Ascent',
-        trait: 'Open-Air',
-        image: 'assets/webflow/arena/skyline_ascent_bg_01.png'
-      },
-      forge_vector: {
-        name: 'Forge Vector',
-        trait: 'Industrial',
-        image: 'assets/webflow/arena/forge_vector_bg_01.png'
-      },
-      hydro_reactor_core: {
-        name: 'Hydro Reactor Core',
-        trait: 'Reactive',
-        image: 'assets/webflow/arena/hydro_reactor_core_bg_01.png'
-      },
-      solaris_hall: {
-        name: 'Solaris Hall',
-        trait: 'Ceremonial',
-        image: 'assets/webflow/arena/solaris_hall_bg_01.png'
-      }
-    };
-
-    const previewLayer = document.getElementById('arena-preview-layer');
-    const arenaButtons = document.querySelectorAll('.arena-button');
-    const nextButton = document.getElementById('arena-next-button');
-    const statusState = document.getElementById('arena-status-state');
-
-    const lockValue = document.getElementById('arena-lock-value');
-    const lockTrait = document.getElementById('arena-lock-trait');
-
-    let selectedArena = sessionStorage.getItem('ap_arena') || '';
-    let previewArena = selectedArena || 'apex_crucible';
-
-    function resolveAsset(path) {
-      if (window.location.protocol === 'file:') {
-        return path;
-      }
-      return `/${path.replace(/^\/+/, '')}`;
-    }
-
-    function setPreview(arenaKey) {
-      const arena = arenas[arenaKey];
-      if (!arena) return;
-
-      previewArena = arenaKey;
-      previewLayer.style.backgroundImage = `url("${resolveAsset(arena.image)}")`;
-    }
-
-    function setSelected(arenaKey) {
-      const arena = arenas[arenaKey];
-      if (!arena) return;
-
-      selectedArena = arenaKey;
-      sessionStorage.setItem('ap_arena', arenaKey);
-
-      lockValue.textContent = arena.name;
-      lockTrait.textContent = arena.trait;
-      lockTrait.hidden = false;
-      statusState.textContent = 'LOCKED';
-
-      arenaButtons.forEach((button) => {
-        button.classList.toggle('is-active', button.dataset.arena === arenaKey);
-      });
-
-      nextButton.disabled = false;
-      nextButton.classList.remove('is-disabled');
-    }
-
-    function restorePreview() {
-      if (selectedArena && arenas[selectedArena]) {
-        setPreview(selectedArena);
-      } else {
-        setPreview('apex_crucible');
-      }
-    }
-
-    arenaButtons.forEach((button) => {
-      button.addEventListener('mouseenter', () => {
-        setPreview(button.dataset.arena);
-      });
-
-      button.addEventListener('focus', () => {
-        setPreview(button.dataset.arena);
-      });
-
-      button.addEventListener('mouseleave', () => {
-        restorePreview();
-      });
-
-      button.addEventListener('blur', () => {
-        restorePreview();
-      });
-
-      button.addEventListener('click', () => {
-        button.classList.remove('is-fired');
-        void button.offsetWidth;
-        button.classList.add('is-fired');
-
-        setPreview(button.dataset.arena);
-        setSelected(button.dataset.arena);
-      });
-    });
-
-    nextButton.addEventListener('click', () => {
-      if (!selectedArena) return;
-      window.location.href = 'select.html';
-    });
-
-    if (selectedArena && arenas[selectedArena]) {
-      setPreview(selectedArena);
-      setSelected(selectedArena);
-    } else {
-      lockValue.textContent = 'No Arena Locked';
-      lockTrait.hidden = true;
-      statusState.textContent = 'PREVIEW';
-      restorePreview();
-    }
-  </script>
+  <script src="arena.js"></script>
 </body>
 </html>
