@@ -37,23 +37,23 @@
   }
 
   .mode-panel {
-    padding: 34px 14px 64px;
+    padding: 34px 14px 68px;
   }
 
-  .mode-shell {
-    min-height: calc(100vh - 124px);
-    padding-top: 18px;
-  }
+.mode-shell {
+  min-height: calc(100vh - 130px);
+  padding-top: 12px;
+}
 
-  .mode-kicker {
-    font-size: 0.66rem;
-    letter-spacing: 0.2em;
-  }
+.mode-kicker {
+  font-size: 0.64rem;
+  letter-spacing: 0.2em;
+}
 
-  .mode-title {
-    font-size: clamp(2.9rem, 9vw, 4.2rem);
-    letter-spacing: 0.1em;
-  }
+.mode-title {
+  font-size: clamp(2.8rem, 8vw, 4rem);
+  letter-spacing: 0.1em;
+}
 
   .mode-subtitle {
     max-width: 94%;
@@ -61,7 +61,7 @@
   }
 
   .mode-support {
-    font-size: 0.8rem;
+    font-size: 0.78rem;
   }
 
   .mode-format-button {
